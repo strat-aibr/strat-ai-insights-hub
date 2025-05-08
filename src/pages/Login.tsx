@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase, cleanupAuthState } from "@/integrations/supabase/client";
 
-// Mock users for testing (will be replaced with Supabase auth)
+// Mock users for testing - we'll also try Supabase auth first
 const MOCK_USERS = [
   {
     id: "admin-id",
@@ -32,10 +33,16 @@ export default function Login() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const storedUser = localStorage.getItem("strataiUser");
-    if (storedUser) {
-      navigate("/dashboard");
-    }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const storedUser = localStorage.getItem("strataiUser");
+      
+      if (session?.user || storedUser) {
+        navigate("/dashboard");
+      }
+    };
+    
+    checkSession();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -44,21 +51,50 @@ export default function Login() {
     setLoading(true);
     
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Clean up existing auth state to avoid conflicts
+      cleanupAuthState();
       
-      // Find user (to be replaced with Supabase auth)
-      const user = MOCK_USERS.find(
-        u => u.email === email && u.password === password
-      );
+      // First try Supabase authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (user) {
-        // Store user info in localStorage (will be replaced with Supabase session)
-        const { password, ...userWithoutPassword } = user;
-        localStorage.setItem("strataiUser", JSON.stringify(userWithoutPassword));
+      if (error) {
+        console.log("Supabase login error:", error);
+        
+        // If Supabase fails, try mock users as fallback
+        const user = MOCK_USERS.find(
+          u => u.email === email && u.password === password
+        );
+        
+        if (user) {
+          console.log("Mock user login successful");
+          
+          // Store user info in localStorage
+          const { password: _, ...userWithoutPassword } = user;
+          localStorage.setItem("strataiUser", JSON.stringify(userWithoutPassword));
+          
+          toast.success(`Bem-vindo, ${user.name}!`);
+          navigate("/dashboard");
+        } else {
+          toast.error("Email ou senha incorretos");
+        }
+      } else if (data.user) {
+        console.log("Supabase login successful:", data.user);
+        
+        // In a real app, you would fetch the user's profile data from your database here
+        // For now, create a temporary user object based on Supabase data
+        const userProfile = {
+          id: 1, // This should ideally come from your database
+          name: data.user.user_metadata.name || data.user.email?.split('@')[0] || "Usuário",
+          email: data.user.email || "",
+          role: "client" // Default role - would ideally come from your database
+        };
+        
+        localStorage.setItem("strataiUser", JSON.stringify(userProfile));
+        toast.success(`Bem-vindo, ${userProfile.name}!`);
         navigate("/dashboard");
-      } else {
-        toast.error("Email ou senha incorretos");
       }
     } catch (error) {
       console.error("Login error:", error);

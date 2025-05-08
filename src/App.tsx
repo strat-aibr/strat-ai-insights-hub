@@ -22,7 +22,15 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
     // Check if user is stored in localStorage (will be replaced with Supabase session)
     const storedUser = localStorage.getItem("strataiUser");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Ensure ID is a number
+        parsedUser.id = Number(parsedUser.id);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        localStorage.removeItem("strataiUser");
+      }
     }
     setLoading(false);
   }, []);
@@ -45,7 +53,15 @@ const App = () => {
     // Check if user is stored in localStorage (will be replaced with Supabase session)
     const storedUser = localStorage.getItem("strataiUser");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        // Ensure ID is a number
+        parsedUser.id = Number(parsedUser.id);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        localStorage.removeItem("strataiUser");
+      }
     }
   }, []);
   

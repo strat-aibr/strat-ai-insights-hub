@@ -79,7 +79,7 @@ export default function ClientLinkGenerator({ users }: ClientLinkGeneratorProps)
             <div className="grid gap-2">
               <Label htmlFor="client">Selecione o cliente</Label>
               <Select 
-                value={selectedUserId ? String(selectedUserId) : ""} 
+                value={selectedUserId ? String(selectedUserId) : undefined} 
                 onValueChange={(value) => setSelectedUserId(Number(value))}
               >
                 <SelectTrigger id="client">

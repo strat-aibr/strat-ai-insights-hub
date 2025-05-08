@@ -33,7 +33,7 @@ export interface Card {
 }
 
 export interface FilterParams {
-  userId: string | null;
+  userId: number | null;
   dateRange: {
     from: Date;
     to: Date;

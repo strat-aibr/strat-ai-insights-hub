@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { type Card, type DashboardStats, type FilterParams, type MetricVariation, type User } from "@/types";
 import { calculatePreviousPeriod, formatDateForAPI } from "./date-utils";
@@ -31,7 +32,7 @@ export async function generateClientLink(userId: number): Promise<string> {
 }
 
 // Function to fetch users from Supabase
-export async function fetchUsers() {
+export async function fetchUsers(): Promise<User[]> {
   try {
     const { data, error } = await supabase
       .from("TRACKING | USERS")
@@ -40,6 +41,10 @@ export async function fetchUsers() {
     if (error) {
       console.error("Error fetching users:", error);
       throw error;
+    }
+
+    if (!data) {
+      return [];
     }
 
     return data.map(user => ({
@@ -57,13 +62,13 @@ export async function fetchUsers() {
 }
 
 // Function to fetch cards (leads) from Supabase based on filters
-export async function fetchCards(filters: FilterParams) {
+export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
     let query = supabase.from("TRACKING | CARDS").select("*");
 
     // Apply filters
     if (filters.userId) {
-      query = query.eq("user_id", Number(filters.userId));
+      query = query.eq("user_id", filters.userId);
     }
 
     if (filters.dateRange?.from && filters.dateRange?.to) {
@@ -101,6 +106,10 @@ export async function fetchCards(filters: FilterParams) {
     if (error) {
       console.error("Error fetching cards:", error);
       throw error;
+    }
+
+    if (!data) {
+      return [];
     }
 
     // Cast the data to the Card type

@@ -1,3 +1,4 @@
+
 import { format, sub } from 'date-fns';
 
 export function formatDate(date: Date) {
@@ -27,4 +28,15 @@ export function calculatePreviousPeriod(from: Date, to: Date): { previousFrom: D
   const previousFrom = new Date(previousTo.getTime() - periodDuration); // Same duration before the previous end
   
   return { previousFrom, previousTo };
+}
+
+// Add the missing getDefaultDateRange function
+export function getDefaultDateRange() {
+  const today = new Date();
+  const lastMonth = sub(today, { days: 30 });
+  
+  return {
+    from: lastMonth,
+    to: today
+  };
 }

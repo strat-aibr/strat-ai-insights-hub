@@ -1,18 +1,19 @@
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   instancia?: string;
   created_at?: string;
   role?: string;
+  strat?: string;
 }
 
 export interface Card {
-  id: number; // Changed from string to number to match the database
+  id: number;
   nome: string;
   numero_de_telefone: string;
-  user_id: number; // Changed from string to number to match the database
+  user_id: number;
   fonte: string;
   campanha: string;
   conjunto: string;

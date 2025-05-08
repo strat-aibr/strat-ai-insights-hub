@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardStats } from "@/types";
@@ -42,7 +43,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
     stats.sankeyData.links.length > 0;
 
   // Function to get color for sankey node
-  const getNodeColor = (nodeData: any, index: number) => {
+  const getNodeColor = (index: number) => {
     return SANKEY_COLORS[index % SANKEY_COLORS.length];
   };
 
@@ -130,8 +131,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     node={{
                       stroke: "#ffffff",
                       strokeWidth: 1,
-                      fill: SANKEY_COLORS[0],
-                      colors: SANKEY_COLORS
+                      fill: (nodeData: any, index: number) => getNodeColor(index)
                     }}
                   >
                     <RechartsTooltip

@@ -31,6 +31,13 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
       setPage(page - 1);
     }
   };
+
+  // Helper function to safely get browser name
+  const getBrowserName = (browser: any): string => {
+    if (!browser) return 'Desconhecido';
+    if (typeof browser === 'string') return browser;
+    return browser.name || 'Desconhecido';
+  };
   
   return (
     <Card className="card-dashboard animate-fade-in">
@@ -61,13 +68,13 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
               paginatedLeads.map((lead, index) => (
                 <tr key={lead.id} className={index % 2 === 1 ? "table-row-alt" : ""}>
                   <td className="table-cell">{formatDateTime(lead.data_criacao)}</td>
-                  <td className="table-cell">{truncateText(lead.nome, 20)}</td>
+                  <td className="table-cell">{truncateText(lead.nome || 'Sem nome', 20)}</td>
                   <td className="table-cell">{formatPhoneNumber(lead.numero_de_telefone)}</td>
-                  <td className="table-cell">{truncateText(lead.fonte, 15)}</td>
-                  <td className="table-cell">{truncateText(lead.campanha, 15)}</td>
-                  <td className="table-cell">{truncateText(lead.conjunto, 15)}</td>
-                  <td className="table-cell">{truncateText(lead.anuncio, 15)}</td>
-                  <td className="table-cell">{truncateText(lead.palavra_chave, 20)}</td>
+                  <td className="table-cell">{truncateText(lead.fonte || '', 15)}</td>
+                  <td className="table-cell">{truncateText(lead.campanha || '', 15)}</td>
+                  <td className="table-cell">{truncateText(lead.conjunto || '', 15)}</td>
+                  <td className="table-cell">{truncateText(lead.anuncio || '', 15)}</td>
+                  <td className="table-cell">{truncateText(lead.palavra_chave || '', 20)}</td>
                 </tr>
               ))
             ) : (

@@ -23,7 +23,7 @@ interface ChartsSectionProps {
 }
 
 export default function ChartsSection({ stats }: ChartsSectionProps) {
-  // Verifica se os dados Sankey são válidos
+  // Validate Sankey data
   const hasSankeyData = stats.sankeyData && 
     stats.sankeyData.nodes && 
     stats.sankeyData.nodes.length > 0 && 
@@ -44,37 +44,53 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
           <Card className="card-dashboard">
             <h3 className="text-lg font-medium mb-4">Leads por Dia</h3>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={stats.leadsByDate}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => value.split("T")[0].split("-").slice(1).reverse().join("/")}
-                  />
-                  <YAxis 
-                    allowDecimals={false}
-                    tickFormatter={(value) => value.toLocaleString()}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [value.toLocaleString(), "Leads"]} 
-                    labelFormatter={(label) => {
-                      // Format date nicely (assuming YYYY-MM-DD format)
-                      const date = new Date(label);
-                      return date.toLocaleDateString('pt-BR');
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke="var(--stratai-500)"
-                    fill="var(--stratai-200)"
-                    fillOpacity={0.8}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {stats.leadsByDate && stats.leadsByDate.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={stats.leadsByDate}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(value) => {
+                        if (!value) return '';
+                        const parts = value.split("-");
+                        if (parts.length < 3) return value;
+                        return `${parts[2]}/${parts[1]}`;
+                      }}
+                    />
+                    <YAxis 
+                      allowDecimals={false}
+                      tickFormatter={(value) => value.toLocaleString()}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => [value.toLocaleString(), "Leads"]} 
+                      labelFormatter={(label) => {
+                        // Format date nicely (assuming YYYY-MM-DD format)
+                        if (!label) return '';
+                        try {
+                          const date = new Date(label);
+                          return date.toLocaleDateString('pt-BR');
+                        } catch (e) {
+                          return label;
+                        }
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="var(--stratai-500)"
+                      fill="var(--stratai-200)"
+                      fillOpacity={0.8}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-muted-foreground">
+                  Não há dados suficientes para exibir o gráfico de timeline.
+                </div>
+              )}
             </div>
           </Card>
         </TabsContent>

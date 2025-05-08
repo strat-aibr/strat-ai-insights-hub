@@ -1,10 +1,11 @@
+
 export interface User {
   id: string;
   name: string;
   email: string;
   instancia?: string;
   created_at?: string;
-  role?: string; // Adding the role property
+  role?: string;
 }
 
 export interface Card {
@@ -17,7 +18,10 @@ export interface Card {
   conjunto: string;
   anuncio: string;
   palavra_chave: string;
-  browser: string;
+  browser: string | {
+    name?: string;
+    [key: string]: any;
+  };
   location: {
     city: string;
     country?: string;

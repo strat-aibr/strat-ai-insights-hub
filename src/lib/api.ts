@@ -1,10 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
-import { type Card, type DashboardStats, type FilterParams, type MetricVariation, type User } from "@/types";
+import { type Card, type DashboardStats, type FilterParams, type User } from "@/types";
 import { calculatePreviousPeriod, formatDateForAPI } from "./date-utils";
+import { toast } from "sonner";
 
 // Function to generate a client link
 export async function generateClientLink(userId: number): Promise<string> {
   try {
+    console.log("Generating client link for user ID:", userId);
+    
     // Check if user exists
     const { data: userData, error: userError } = await supabase
       .from("TRACKING | USERS")
@@ -43,6 +46,7 @@ export async function fetchUsers(): Promise<User[]> {
     
     if (testError) {
       console.error("Erro no teste de conexão:", testError);
+      toast.error("Erro ao conectar com o banco de dados");
       throw testError;
     }
     
@@ -55,28 +59,32 @@ export async function fetchUsers(): Promise<User[]> {
 
     if (error) {
       console.error("Erro ao buscar usuários:", error);
+      toast.error("Erro ao buscar lista de usuários");
       throw error;
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.log("Nenhum usuário encontrado");
       return [];
     }
 
     console.log("Usuários encontrados:", data.length, data);
     
-    // Map the data to the User type, with role as undefined if it doesn't exist
-    return data.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      instancia: user.instancia,
-      role: undefined, // The field doesn't exist in the table
-      strat: user.strat
+    // Map the data to the User type, adding role property as it's required by the User type
+    const users: User[] = data.map(user => ({
+      id: typeof user.id === 'number' ? user.id : Number(user.id),
+      name: user.name || "",
+      email: user.email || "",
+      instancia: user.instancia || "",
+      role: undefined, // Add this property as it's required by the User type
+      strat: user.strat || false
     }));
+    
+    return users;
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
-    throw error;
+    toast.error("Falha ao buscar usuários");
+    return [];
   }
 }
 
@@ -84,6 +92,11 @@ export async function fetchUsers(): Promise<User[]> {
 export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
     console.log("Iniciando fetchCards com filtros:", filters);
+    
+    if (!filters || (filters.userId === null && filters.userId !== 0)) {
+      console.warn("Filtros inválidos ou sem ID de usuário:", filters);
+      return [];
+    }
     
     // Test the connection first
     const { data: testData, error: testError } = await supabase
@@ -93,6 +106,7 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     
     if (testError) {
       console.error("Erro no teste de conexão para cards:", testError);
+      toast.error("Erro ao conectar com o banco de dados");
       throw testError;
     }
     
@@ -142,6 +156,7 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
 
     if (error) {
       console.error("Erro ao buscar cards:", error);
+      toast.error("Erro ao buscar leads");
       throw error;
     }
 
@@ -156,12 +171,8 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     return data as unknown as Card[];
   } catch (error) {
     console.error("Erro ao buscar cards:", error);
-    throw {
-      message: error instanceof Error ? error.message : "Falha ao buscar",
-      details: error instanceof Error ? error.message : "Falha ao buscar",
-      hint: "",
-      code: "",
-    };
+    toast.error("Falha ao buscar leads");
+    return [];
   }
 }
 
@@ -176,8 +187,8 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     
     // Calculate the previous period for comparison
     const { previousFrom, previousTo } = calculatePreviousPeriod(
-      filters.dateRange.from, 
-      filters.dateRange.to
+      filters.dateRange?.from, 
+      filters.dateRange?.to
     );
     
     // Fetch cards for the previous period
@@ -186,9 +197,9 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       dateRange: { from: previousFrom, to: previousTo }
     };
     
-    // Temporarily disable this to fix build errors
-    // const previousCards = await fetchCards(previousFilters);
-    const previousCards: Card[] = [];
+    // Fetch the previous cards
+    const previousCards = await fetchCards(previousFilters);
+    console.log("Cards do período anterior:", previousCards.length);
     
     // Calculate percentage change
     const currentCount = currentCards.length;
@@ -216,12 +227,14 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     
     currentCards.forEach(card => {
       // Process date
-      const date = card.data_criacao.split('T')[0];
-      const existingDateIndex = leadsByDate.findIndex(item => item.date === date);
-      if (existingDateIndex >= 0) {
-        leadsByDate[existingDateIndex].count += 1;
-      } else {
-        leadsByDate.push({ date, count: 1 });
+      const date = card.data_criacao ? (typeof card.data_criacao === 'string' ? card.data_criacao.split('T')[0] : '') : '';
+      if (date) {
+        const existingDateIndex = leadsByDate.findIndex(item => item.date === date);
+        if (existingDateIndex >= 0) {
+          leadsByDate[existingDateIndex].count += 1;
+        } else {
+          leadsByDate.push({ date, count: 1 });
+        }
       }
       
       // Process location
@@ -232,8 +245,8 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       let browserName = 'Unknown';
       if (typeof card.browser === 'string') {
         browserName = card.browser;
-      } else if (card.browser && typeof card.browser === 'object' && card.browser.name) {
-        browserName = card.browser.name;
+      } else if (card.browser && typeof card.browser === 'object' && 'name' in card.browser) {
+        browserName = card.browser.name as string || 'Unknown';
       }
       browserMap.set(browserName, (browserMap.get(browserName) || 0) + 1);
       

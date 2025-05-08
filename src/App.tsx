@@ -13,7 +13,14 @@ import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import { toast } from "sonner";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,7 +35,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
       try {
         const parsedUser = JSON.parse(storedUser);
         // Ensure ID is a number
-        parsedUser.id = Number(parsedUser.id);
+        parsedUser.id = Number(parsedUser.id) || 0;
         console.log("ProtectedRoute: Usuário carregado", parsedUser);
         setUser(parsedUser);
       } catch (error) {
@@ -67,7 +74,7 @@ const App = () => {
       try {
         const parsedUser = JSON.parse(storedUser);
         // Ensure ID is a number
-        parsedUser.id = Number(parsedUser.id);
+        parsedUser.id = Number(parsedUser.id) || 0;
         console.log("App: Usuário carregado", parsedUser);
         setUser(parsedUser);
       } catch (error) {

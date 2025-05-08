@@ -20,6 +20,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardProps) {
+  console.log("Dashboard initializing with user:", user);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
@@ -42,10 +43,10 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   );
 
   const loadData = useCallback(async () => {
-    console.log("Iniciando carregamento de dados...", { user, isAdmin });
+    console.log("Iniciando carregamento de dados...", { user, isAdmin, userId: user?.id });
     
-    if (!user?.id) {
-      console.error("ID do usuário está faltando, não é possível carregar dados");
+    if (!user?.id && user?.id !== 0) {
+      console.error("ID do usuário está faltando, não é possível carregar dados", { user });
       toast.error("Erro de autenticação. Por favor, faça login novamente");
       onLogout();
       return;
@@ -59,34 +60,48 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       if (isAdmin) {
         console.log("Usuário é admin, buscando lista de usuários");
         const usersData = await fetchUsers();
-        setUsers(usersData);
-        console.log("Usuários carregados:", usersData.length);
+        if (usersData.length > 0) {
+          setUsers(usersData);
+          console.log("Usuários carregados:", usersData.length);
+        } else {
+          console.warn("Nenhum usuário encontrado");
+        }
       }
 
+      // Update filters if needed
+      const effectiveFilters = {
+        ...currentFilters,
+        userId: currentFilters.userId || (!isAdmin ? user.id : null),
+      };
+      
+      console.log("Filtros efetivos:", effectiveFilters);
+
       // Load leads based on filters
-      console.log("Buscando leads com filtros:", currentFilters);
-      const leadsData = await fetchCards(currentFilters);
+      console.log("Buscando leads com filtros:", effectiveFilters);
+      const leadsData = await fetchCards(effectiveFilters);
       setLeads(leadsData);
       console.log("Leads carregados:", leadsData.length);
       
       // Load stats
       console.log("Buscando estatísticas");
-      const statsData = await fetchDashboardStats(currentFilters);
+      const statsData = await fetchDashboardStats(effectiveFilters);
       setStats(statsData);
       console.log("Estatísticas carregadas:", statsData.totalLeads, "total de leads");
       
       // Extract filter options from leads data
-      const uniqueSources = Array.from(new Set(leadsData.map(lead => lead.fonte).filter(Boolean)));
-      const uniqueCampaigns = Array.from(new Set(leadsData.map(lead => lead.campanha).filter(Boolean)));
-      const uniqueSets = Array.from(new Set(leadsData.map(lead => lead.conjunto).filter(Boolean)));
-      const uniqueAds = Array.from(new Set(leadsData.map(lead => lead.anuncio).filter(Boolean)));
-      const uniqueKeywords = Array.from(new Set(leadsData.map(lead => lead.palavra_chave).filter(Boolean)));
-      
-      setSources(uniqueSources);
-      setCampaigns(uniqueCampaigns);
-      setSets(uniqueSets);
-      setAds(uniqueAds);
-      setKeywords(uniqueKeywords);
+      if (leadsData.length > 0) {
+        const uniqueSources = Array.from(new Set(leadsData.map(lead => lead.fonte).filter(Boolean)));
+        const uniqueCampaigns = Array.from(new Set(leadsData.map(lead => lead.campanha).filter(Boolean)));
+        const uniqueSets = Array.from(new Set(leadsData.map(lead => lead.conjunto).filter(Boolean)));
+        const uniqueAds = Array.from(new Set(leadsData.map(lead => lead.anuncio).filter(Boolean)));
+        const uniqueKeywords = Array.from(new Set(leadsData.map(lead => lead.palavra_chave).filter(Boolean)));
+        
+        setSources(uniqueSources);
+        setCampaigns(uniqueCampaigns);
+        setSets(uniqueSets);
+        setAds(uniqueAds);
+        setKeywords(uniqueKeywords);
+      }
       
       // Update current client if changed
       if (currentFilters.userId && users.length > 0) {
@@ -98,6 +113,10 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
         setCurrentClient(undefined);
       }
 
+      if (leadsData.length === 0) {
+        toast.info("Nenhum lead encontrado para os filtros selecionados");
+      }
+      
     } catch (error) {
       console.error("Erro ao carregar dados do dashboard:", error);
       toast.error("Erro ao carregar os dados do dashboard");
@@ -108,7 +127,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
-    if (user && user.id) {
+    if (user && (user.id || user.id === 0)) {
       loadData();
     }
   }, [loadData, user]);

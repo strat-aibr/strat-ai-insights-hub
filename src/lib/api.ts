@@ -34,9 +34,10 @@ export async function generateClientLink(userId: number): Promise<string> {
 // Function to fetch users from Supabase
 export async function fetchUsers(): Promise<User[]> {
   try {
+    // Update the query to only select columns that exist in the table
     const { data, error } = await supabase
       .from("TRACKING | USERS")
-      .select("id, name, email, instancia, role, strat");
+      .select("id, name, email, instancia, strat");
 
     if (error) {
       console.error("Error fetching users:", error);
@@ -47,12 +48,13 @@ export async function fetchUsers(): Promise<User[]> {
       return [];
     }
 
+    // Map the data to the User type, with role as undefined if it doesn't exist
     return data.map(user => ({
       id: user.id,
       name: user.name,
       email: user.email,
       instancia: user.instancia,
-      role: user.role,
+      role: undefined, // The field doesn't exist in the table
       strat: user.strat
     }));
   } catch (error) {

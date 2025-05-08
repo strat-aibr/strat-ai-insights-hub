@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -15,13 +16,14 @@ export default function ClientView() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const userIdParam = searchParams.get("userId");
   
   const [isLoading, setIsLoading] = useState(true);
   const [client, setClient] = useState<User | null>(null);
   const [leads, setLeads] = useState<Card[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
-    userId: "", // Will be set from token
+    userId: userIdParam ? Number(userIdParam) : null, // Convert to number
     dateRange: getDefaultDateRange(),
   });
   
@@ -47,9 +49,15 @@ export default function ClientView() {
         // Simulated token validation and client data fetch
         await new Promise((resolve) => setTimeout(resolve, 1000));
         
+        // Convert the ID to a number to match our User type
+        const clientId = userIdParam ? Number(userIdParam) : null;
+        if (!clientId) {
+          throw new Error("Invalid client ID");
+        }
+        
         // Mock client data (would come from token validation)
-        const clientData = {
-          id: "client-id-from-token",
+        const clientData: User = {
+          id: clientId,
           name: "Cliente via Token",
           email: "cliente-token@example.com",
         };
@@ -57,7 +65,7 @@ export default function ClientView() {
         setClient(clientData);
         setCurrentFilters({
           ...currentFilters,
-          userId: clientData.id
+          userId: clientId
         });
       } catch (error) {
         console.error("Token validation error:", error);
@@ -67,7 +75,7 @@ export default function ClientView() {
     };
     
     validateToken();
-  }, [token, navigate]);
+  }, [token, navigate, userIdParam]);
   
   useEffect(() => {
     const loadData = async () => {
@@ -110,13 +118,13 @@ export default function ClientView() {
     // Ensure we keep the client ID from the token
     setCurrentFilters({
       ...newFilters,
-      userId: client?.id
+      userId: client?.id || null
     });
   };
   
   const handleResetFilters = () => {
     setCurrentFilters({
-      userId: client?.id || "",
+      userId: client?.id || null,
       dateRange: getDefaultDateRange(),
     });
   };

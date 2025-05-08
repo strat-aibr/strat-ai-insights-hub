@@ -71,7 +71,7 @@ const App = () => {
                 <ProtectedRoute>
                   {/* Garantir que user é passado apenas quando não for nulo */}
                   <Dashboard 
-                    user={user || { id: '', name: '', email: '' }} 
+                    user={user as User} 
                     isAdmin={!!isAdmin} 
                     onLogout={handleLogout} 
                   />

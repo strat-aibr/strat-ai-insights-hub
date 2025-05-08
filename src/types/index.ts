@@ -6,7 +6,7 @@ export interface User {
   instancia?: string;
   created_at?: string;
   role?: string;
-  strat?: string;
+  strat?: string | boolean;
 }
 
 export interface Card {

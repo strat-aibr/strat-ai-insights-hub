@@ -30,7 +30,7 @@ export function calculatePreviousPeriod(from: Date, to: Date): { previousFrom: D
   return { previousFrom, previousTo };
 }
 
-// Add the missing getDefaultDateRange function
+// Add the getDefaultDateRange function
 export function getDefaultDateRange() {
   const today = new Date();
   const lastMonth = sub(today, { days: 30 });

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card } from "@/components/ui/card";
@@ -26,7 +25,7 @@ import { cn } from "@/lib/utils";
 interface DashboardFilterProps {
   users: User[];
   isAdmin: boolean;
-  currentUserId?: string;
+  currentUserId?: number;
   onFilterChange: (filters: FilterParams) => void;
   onReset: () => void;
   availableSources: string[];
@@ -97,18 +96,22 @@ export default function DashboardFilter({
             
             {isAdmin && (
               <Select
-                value={filters.userId || "all"}
-                onValueChange={(value) => 
-                  setFilters({ ...filters, userId: value === "all" ? null : value })
-                }
+                value={filters.userId ? String(filters.userId) : ""}
+                onValueChange={(value) => {
+                  setFilters({
+                    ...filters,
+                    userId: value ? Number(value) : null
+                  });
+                }}
+                disabled={!isAdmin}
               >
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os clientes</SelectItem>
+                  <SelectItem value="">Todos os clientes</SelectItem>
                   {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
+                    <SelectItem key={user.id} value={String(user.id)}>
                       {user.name}
                     </SelectItem>
                   ))}

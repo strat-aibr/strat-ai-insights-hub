@@ -23,7 +23,7 @@ interface ClientLinkGeneratorProps {
 }
 
 export default function ClientLinkGenerator({ users }: ClientLinkGeneratorProps) {
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [generatedLink, setGeneratedLink] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -51,7 +51,7 @@ export default function ClientLinkGenerator({ users }: ClientLinkGeneratorProps)
   };
 
   const resetState = () => {
-    setSelectedUserId("");
+    setSelectedUserId(null);
     setGeneratedLink("");
   };
 
@@ -78,13 +78,16 @@ export default function ClientLinkGenerator({ users }: ClientLinkGeneratorProps)
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="client">Selecione o cliente</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+              <Select 
+                value={selectedUserId ? String(selectedUserId) : ""} 
+                onValueChange={(value) => setSelectedUserId(Number(value))}
+              >
                 <SelectTrigger id="client">
                   <SelectValue placeholder="Selecione um cliente" />
                 </SelectTrigger>
                 <SelectContent>
                   {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
+                    <SelectItem key={user.id} value={String(user.id)}>
                       {user.name}
                     </SelectItem>
                   ))}

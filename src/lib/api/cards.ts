@@ -9,18 +9,17 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
     console.log("Iniciando fetchCards com filtros:", filters);
     
-    // Check if userId is explicitly 0 or a positive number
-    if (!filters || (filters.userId === null && filters.userId !== 0)) {
-      console.warn("Filtros inválidos ou sem ID de usuário:", filters);
-      return [];
-    }
+    console.log("Supabase client status:", supabase);
     
+    // Remove userId check to see if that's causing the issue
     let query = supabase.from("TRACKING | CARDS").select("*");
 
     // Apply filters
-    if (filters.userId !== null) {
+    if (filters.userId !== null && filters.userId !== undefined) {
       console.log("Filtrando por ID de usuário:", filters.userId);
       query = query.eq("user_id", filters.userId);
+    } else {
+      console.log("Buscando todos os cards sem filtro de usuário");
     }
 
     if (filters.dateRange?.from && filters.dateRange?.to) {
@@ -58,10 +57,12 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Erro ao buscar cards:", error);
-      toast.error("Erro ao buscar leads");
+      console.error("Erro detalhado ao buscar cards:", error);
+      toast.error("Erro ao buscar leads: " + error.message);
       throw error;
     }
+
+    console.log("Resposta da query de cards:", data);
 
     if (!data) {
       console.log("Nenhum card encontrado");
@@ -74,7 +75,7 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     return data as unknown as Card[];
   } catch (error) {
     console.error("Erro ao buscar cards:", error);
-    toast.error("Falha ao buscar leads");
+    toast.error("Falha ao buscar leads. Verifique o console para mais detalhes.");
     return [];
   }
 }

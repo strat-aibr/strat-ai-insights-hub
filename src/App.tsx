@@ -80,8 +80,6 @@ const App = () => {
         if (session?.user) {
           console.log("Sessão do Supabase encontrada:", session.user);
           // You might want to fetch more user data from your database here
-          
-          // For now, we'll still use localStorage as fallback
         }
         
         // Check localStorage as fallback
@@ -141,9 +139,13 @@ const App = () => {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  {/* Garantir que user é passado apenas quando não for nulo */}
+                  {/* Dashboard component should handle null user internally */}
                   <Dashboard 
-                    user={user as User} 
+                    user={user || {
+                      id: 0,
+                      name: "Carregando...",
+                      email: "Carregando..."
+                    }}
                     isAdmin={!!isAdmin} 
                     onLogout={handleLogout} 
                   />

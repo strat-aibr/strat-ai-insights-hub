@@ -30,7 +30,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   
   // Initialize with user ID from props, ensuring it's a number (0 is valid)
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
-    userId: user && (user.id || user.id === 0) ? user.id : null,
+    userId: user && (user.id !== undefined || user.id === 0) ? user.id : null,
     dateRange: getDefaultDateRange(),
   });
   
@@ -48,7 +48,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const loadData = useCallback(async () => {
     console.log("Iniciando carregamento de dados...", { user, isAdmin, userId: user?.id });
     
-    // Check if user is defined and user ID is available (can be 0)
+    // Ensure there's a valid user
     if (!user || (user.id === undefined && user.id !== 0)) {
       console.error("ID do usuário está faltando, não é possível carregar dados", { user });
       toast.error("Erro de autenticação. Por favor, faça login novamente");

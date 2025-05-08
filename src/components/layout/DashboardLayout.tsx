@@ -5,7 +5,7 @@ import { LogOut } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  user: User;
+  user: User | null;
   onLogout: () => void;
 }
 
@@ -26,7 +26,7 @@ export default function DashboardLayout({
           
           <div className="flex items-center gap-4">
             <div className="text-sm font-medium">
-              {user.email}
+              {user?.email || "Carregando..."}
             </div>
             <Button
               variant="ghost"

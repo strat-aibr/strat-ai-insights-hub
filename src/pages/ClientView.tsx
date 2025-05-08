@@ -24,7 +24,7 @@ export default function ClientView() {
   const [leads, setLeads] = useState<Card[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
-    userId: userIdParam ? Number(userIdParam) : null, // Convert to number
+    userId: userIdParam ? Number(userIdParam) : null,
     dateRange: getDefaultDateRange(),
   });
   
@@ -76,7 +76,7 @@ export default function ClientView() {
     };
     
     validateToken();
-  }, [token, navigate, userIdParam]);
+  }, [token, navigate, userIdParam, currentFilters]);
   
   useEffect(() => {
     const loadData = async () => {

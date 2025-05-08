@@ -1,10 +1,10 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   instancia?: string;
   created_at?: string;
+  role?: string; // Adding the role property
 }
 
 export interface Card {

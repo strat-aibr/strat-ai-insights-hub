@@ -26,8 +26,10 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const [users, setUsers] = useState<User[]>([]);
   const [leads, setLeads] = useState<Card[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  
+  // Initialize with user ID from props, ensuring it's a number (0 is valid)
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
-    userId: !isAdmin && user?.id ? user.id : null,
+    userId: user && (user.id || user.id === 0) ? user.id : null,
     dateRange: getDefaultDateRange(),
   });
   
@@ -45,7 +47,8 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const loadData = useCallback(async () => {
     console.log("Iniciando carregamento de dados...", { user, isAdmin, userId: user?.id });
     
-    if (!user?.id && user?.id !== 0) {
+    // Check if user is defined and user ID is available (can be 0)
+    if (!user || (user.id === undefined && user.id !== 0)) {
       console.error("ID do usuário está faltando, não é possível carregar dados", { user });
       toast.error("Erro de autenticação. Por favor, faça login novamente");
       onLogout();
@@ -68,10 +71,10 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
         }
       }
 
-      // Update filters if needed
+      // Update filters with user ID if not set
       const effectiveFilters = {
         ...currentFilters,
-        userId: currentFilters.userId || (!isAdmin ? user.id : null),
+        userId: currentFilters.userId !== null ? currentFilters.userId : (user?.id || null),
       };
       
       console.log("Filtros efetivos:", effectiveFilters);
@@ -104,7 +107,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       }
       
       // Update current client if changed
-      if (currentFilters.userId && users.length > 0) {
+      if (currentFilters.userId !== null && users.length > 0) {
         const selectedClient = users.find(u => u.id === currentFilters.userId);
         setCurrentClient(selectedClient);
       } else if (!isAdmin) {
@@ -127,7 +130,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
-    if (user && (user.id || user.id === 0)) {
+    if (user && (user.id !== undefined || user.id === 0)) {
       loadData();
     }
   }, [loadData, user]);
@@ -140,7 +143,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const handleResetFilters = () => {
     console.log("Resetando filtros");
     setCurrentFilters({
-      userId: !isAdmin && user?.id ? user.id : null,
+      userId: !isAdmin && user?.id !== undefined ? user.id : null,
       dateRange: getDefaultDateRange(),
     });
   };
@@ -172,7 +175,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       <DashboardFilter
         users={users}
         isAdmin={isAdmin}
-        currentUserId={!isAdmin && user?.id ? user.id : undefined}
+        currentUserId={!isAdmin && user?.id !== undefined ? user.id : undefined}
         onFilterChange={handleFilterChange}
         onReset={handleResetFilters}
         availableSources={sources}

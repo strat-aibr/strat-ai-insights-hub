@@ -12,6 +12,7 @@ import ClientView from "./pages/ClientView";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import { toast } from "sonner";
+import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +28,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Check if user is stored in localStorage (will be replaced with Supabase session)
+    // Check if user is stored in localStorage
     const storedUser = localStorage.getItem("strataiUser");
     console.log("ProtectedRoute: Verificando usuário armazenado", { storedUser });
     
@@ -35,7 +36,7 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
       try {
         const parsedUser = JSON.parse(storedUser);
         // Ensure ID is a number
-        parsedUser.id = Number(parsedUser.id) || 0;
+        parsedUser.id = typeof parsedUser.id === 'number' ? parsedUser.id : Number(parsedUser.id);
         console.log("ProtectedRoute: Usuário carregado", parsedUser);
         setUser(parsedUser);
       } catch (error) {
@@ -66,27 +67,60 @@ const App = () => {
   const [user, setUser] = useState<User | null>(null);
   
   useEffect(() => {
-    // Check if user is stored in localStorage (will be replaced with Supabase session)
-    const storedUser = localStorage.getItem("strataiUser");
-    console.log("App: Verificando usuário armazenado", { storedUser });
-    
-    if (storedUser) {
+    const checkSession = async () => {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        // Ensure ID is a number
-        parsedUser.id = Number(parsedUser.id) || 0;
-        console.log("App: Usuário carregado", parsedUser);
-        setUser(parsedUser);
+        // Check if Supabase session exists
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Erro ao verificar sessão:", error);
+        }
+        
+        // If Supabase has an active session, use it
+        if (session?.user) {
+          console.log("Sessão do Supabase encontrada:", session.user);
+          // You might want to fetch more user data from your database here
+          
+          // For now, we'll still use localStorage as fallback
+        }
+        
+        // Check localStorage as fallback
+        const storedUser = localStorage.getItem("strataiUser");
+        console.log("App: Verificando usuário armazenado", { storedUser });
+        
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            // Ensure ID is a number (0 is a valid ID)
+            parsedUser.id = typeof parsedUser.id === 'number' ? parsedUser.id : Number(parsedUser.id);
+            console.log("App: Usuário carregado", parsedUser);
+            setUser(parsedUser);
+          } catch (error) {
+            console.error("Erro ao analisar usuário do localStorage:", error);
+            localStorage.removeItem("strataiUser");
+          }
+        }
       } catch (error) {
-        console.error("Erro ao analisar usuário do localStorage:", error);
-        localStorage.removeItem("strataiUser");
+        console.error("Erro ao verificar autenticação:", error);
       }
-    }
+    };
+    
+    checkSession();
   }, []);
   
   const handleLogout = () => {
     console.log("Realizando logout");
     localStorage.removeItem("strataiUser");
+    
+    // Also sign out from Supabase
+    supabase.auth.signOut()
+      .then(() => {
+        console.log("Supabase signout successful");
+      })
+      .catch((error) => {
+        console.error("Erro ao fazer logout do Supabase:", error);
+      });
+      
     setUser(null);
     toast.success("Logout realizado com sucesso");
   };

@@ -22,6 +22,14 @@ export const supabase = createClient<Database>(
         'Content-Type': 'application/json',
       },
     },
+    db: {
+      schema: 'public',
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
   }
 );
 

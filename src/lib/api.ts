@@ -38,25 +38,12 @@ export async function fetchUsers(): Promise<User[]> {
   try {
     console.log("Iniciando fetchUsers...");
     
-    // Test the connection first
-    const { data: testData, error: testError } = await supabase
-      .from("TRACKING | USERS")
-      .select("count()")
-      .limit(1);
-    
-    if (testError) {
-      console.error("Erro no teste de conexão:", testError);
-      toast.error("Erro ao conectar com o banco de dados");
-      throw testError;
-    }
-    
-    console.log("Teste de conexão bem-sucedido:", testData);
-    
-    // Now fetch the actual data
+    // Instead of using count(), directly fetch the users
     const { data, error } = await supabase
       .from("TRACKING | USERS")
-      .select("id, name, email, instancia, strat");
-
+      .select("id, name, email, instancia, strat")
+      .order('id');
+    
     if (error) {
       console.error("Erro ao buscar usuários:", error);
       toast.error("Erro ao buscar lista de usuários");
@@ -93,29 +80,16 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
     console.log("Iniciando fetchCards com filtros:", filters);
     
+    // Check if userId is explicitly 0 or a positive number
     if (!filters || (filters.userId === null && filters.userId !== 0)) {
       console.warn("Filtros inválidos ou sem ID de usuário:", filters);
       return [];
     }
     
-    // Test the connection first
-    const { data: testData, error: testError } = await supabase
-      .from("TRACKING | CARDS")
-      .select("count()")
-      .limit(1);
-    
-    if (testError) {
-      console.error("Erro no teste de conexão para cards:", testError);
-      toast.error("Erro ao conectar com o banco de dados");
-      throw testError;
-    }
-    
-    console.log("Teste de conexão para cards bem-sucedido:", testData);
-    
     let query = supabase.from("TRACKING | CARDS").select("*");
 
     // Apply filters
-    if (filters.userId) {
+    if (filters.userId !== null) {
       console.log("Filtrando por ID de usuário:", filters.userId);
       query = query.eq("user_id", filters.userId);
     }

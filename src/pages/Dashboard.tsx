@@ -51,19 +51,24 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
     setIsLoading(true);
     try {
+      console.log("Loading dashboard data...");
+      
       // Only load users list if admin
       if (isAdmin) {
         const usersData = await fetchUsers();
         setUsers(usersData);
+        console.log("Loaded users:", usersData.length);
       }
 
       // Load leads based on filters
       const leadsData = await fetchCards(currentFilters);
       setLeads(leadsData);
+      console.log("Loaded leads:", leadsData.length);
       
       // Load stats
       const statsData = await fetchDashboardStats(currentFilters);
       setStats(statsData);
+      console.log("Loaded stats:", statsData.totalLeads, "total leads");
       
       // Extract filter options from leads data
       const uniqueSources = Array.from(new Set(leadsData.map(lead => lead.fonte).filter(Boolean)));

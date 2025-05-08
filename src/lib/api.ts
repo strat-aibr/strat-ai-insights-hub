@@ -34,6 +34,8 @@ export async function generateClientLink(userId: number): Promise<string> {
 // Function to fetch users from Supabase
 export async function fetchUsers(): Promise<User[]> {
   try {
+    console.log("Fetching users from Supabase...");
+    
     // Update the query to only select columns that exist in the table
     const { data, error } = await supabase
       .from("TRACKING | USERS")
@@ -45,9 +47,12 @@ export async function fetchUsers(): Promise<User[]> {
     }
 
     if (!data) {
+      console.log("No users found");
       return [];
     }
 
+    console.log("Users fetched successfully:", data.length);
+    
     // Map the data to the User type, with role as undefined if it doesn't exist
     return data.map(user => ({
       id: user.id,
@@ -66,16 +71,20 @@ export async function fetchUsers(): Promise<User[]> {
 // Function to fetch cards (leads) from Supabase based on filters
 export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
+    console.log("Fetching cards with filters:", filters);
+    
     let query = supabase.from("TRACKING | CARDS").select("*");
 
     // Apply filters
     if (filters.userId) {
+      console.log("Filtering by user ID:", filters.userId);
       query = query.eq("user_id", filters.userId);
     }
 
     if (filters.dateRange?.from && filters.dateRange?.to) {
       const fromDate = formatDateForAPI(filters.dateRange.from);
       const toDate = formatDateForAPI(filters.dateRange.to);
+      console.log(`Filtering by date range: ${fromDate} to ${toDate}`);
       query = query.gte("data_criacao", fromDate).lte("data_criacao", toDate);
     }
 
@@ -111,9 +120,12 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     }
 
     if (!data) {
+      console.log("No cards found");
       return [];
     }
 
+    console.log("Cards fetched successfully:", data.length);
+    
     // Cast the data to the Card type
     return data as unknown as Card[];
   } catch (error) {
@@ -130,6 +142,8 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
 // Function to fetch dashboard statistics
 export async function fetchDashboardStats(filters: FilterParams): Promise<DashboardStats> {
   try {
+    console.log("Generating dashboard stats with filters:", filters);
+    
     // First, fetch the cards based on the current filters
     const currentCards = await fetchCards(filters);
     
@@ -292,6 +306,8 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       target: nodeList.indexOf(link.target),
       value: link.value
     }));
+    
+    console.log("Stats generated successfully");
     
     // Create the stats object
     const stats: DashboardStats = {

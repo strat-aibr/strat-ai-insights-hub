@@ -7,7 +7,7 @@ export async function fetchUsers(): Promise<User[]> {
   try {
     const { data, error } = await supabase
       .from('TRACKING | USERS')
-      .select('id, name, email, instancia, created_at, role')
+      .select('id, name, email, instancia, strat')
       
     if (error) throw error;
     
@@ -17,7 +17,7 @@ export async function fetchUsers(): Promise<User[]> {
       name: user.name || '',
       email: user.email || '',
       instancia: user.instancia,
-      created_at: user.created_at,
+      // created_at field is not available in the database table
       role: user.strat ? 'admin' : 'client' // Assuming "strat" field indicates admin status
     }));
     
@@ -38,7 +38,11 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     
     // Apply filters
     if (filters.userId) {
-      query = query.eq('user_id', filters.userId)
+      // Convert string userId to number for the database
+      const userIdNumber = parseInt(filters.userId);
+      if (!isNaN(userIdNumber)) {
+        query = query.eq('user_id', userIdNumber);
+      }
     }
     
     // Date range filter
@@ -68,7 +72,8 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     
     if (error) throw error;
     
-    return data as Card[];
+    // Type cast the data to match our Card type
+    return (data as unknown) as Card[];
   } catch (error) {
     console.error("Error fetching cards:", error);
     toast.error("Não foi possível carregar os dados de leads");
@@ -82,14 +87,14 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     const cards = await fetchCards(filters);
     
     // Calculate comparison period
-    const { previousFrom, previousTo } = calculatePreviousPeriod(
+    const prevPeriod = calculatePreviousPeriod(
       filters.dateRange.from,
       filters.dateRange.to
     );
     
     // Fetch previous period cards for comparison
     const previousPeriodFilters = { ...filters };
-    previousPeriodFilters.dateRange = { from: previousFrom, to: previousTo };
+    previousPeriodFilters.dateRange = { from: prevPeriod.previousFrom, to: prevPeriod.previousTo };
     const previousCards = await fetchCards(previousPeriodFilters);
     
     // Calculate stats
@@ -102,7 +107,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       ? (totalLeads > 0 ? 100 : 0) 
       : (variationValue / previousTotalLeads) * 100;
     
-    const variation = {
+    const variation: MetricVariation = {
       value: variationValue,
       percentage: variationPercentage,
       trend: variationValue > 0 ? 'up' : variationValue < 0 ? 'down' : 'neutral'
@@ -298,22 +303,7 @@ function generateSankeyData(cards: Card[]): {
   return { nodes, links };
 }
 
-export async function generateClientLink(userId: string): Promise<string> {
-  try {
-    // Generate a token (this could be replaced with a more secure method in production)
-    const token = btoa(`user-${userId}-${Date.now()}`);
-    
-    // In a real application, you would store this token in the database
-    // For this example, we'll just return a link with the token
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/strat-ai-report/view?token=${token}`;
-  } catch (error) {
-    console.error("Error generating client link:", error);
-    toast.error("Não foi possível gerar o link para o cliente");
-    return "";
-  }
-}
-
+// Let's keep the existing export function as it is
 export function exportToCSV(cards: Card[], filename: string = "strat-ai-report-leads"): void {
   // Headers
   const headers = [
@@ -352,4 +342,20 @@ export function exportToCSV(cards: Card[], filename: string = "strat-ai-report-l
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+export async function generateClientLink(userId: string): Promise<string> {
+  try {
+    // Generate a token (this could be replaced with a more secure method in production)
+    const token = btoa(`user-${userId}-${Date.now()}`);
+    
+    // In a real application, you would store this token in the database
+    // For this example, we'll just return a link with the token
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/strat-ai-report/view?token=${token}`;
+  } catch (error) {
+    console.error("Error generating client link:", error);
+    toast.error("Não foi possível gerar o link para o cliente");
+    return "";
+  }
 }

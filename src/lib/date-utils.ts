@@ -1,30 +1,30 @@
+import { format, sub } from 'date-fns';
 
-import { differenceInDays, format, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
-
-export function formatDate(date: Date | string): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return format(dateObj, "dd/MM/yyyy", { locale: ptBR });
+export function formatDate(date: Date) {
+  return format(date, 'dd/MM/yyyy');
 }
 
-export function formatDateTime(date: Date | string): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return format(dateObj, "dd/MM/yyyy HH:mm", { locale: ptBR });
+export function formatDateTime(dateString: string) {
+  const date = new Date(dateString);
+  return format(date, 'dd/MM/yyyy HH:mm');
 }
 
-export function getDefaultDateRange() {
-  const today = new Date();
-  const from = subDays(today, 30);
-  return { from, to: today };
+export function formatDateForAPI(date: Date) {
+  return format(date, 'yyyy-MM-dd');
 }
 
-export function calculatePreviousPeriod(from: Date, to: Date) {
-  const days = differenceInDays(to, from) + 1;
-  const prevFrom = subDays(from, days);
-  const prevTo = subDays(from, 1);
-  return { from: prevFrom, to: prevTo };
+export function subtractDays(date: Date, days: number) {
+  return sub(date, { days });
 }
 
-export function formatDateForAPI(date: Date): string {
-  return format(date, "yyyy-MM-dd");
+// Add this function to calculate the previous period for comparison
+export function calculatePreviousPeriod(from: Date, to: Date): { previousFrom: Date; previousTo: Date } {
+  // Calculate the duration of the current period in milliseconds
+  const periodDuration = to.getTime() - from.getTime();
+  
+  // Calculate the start and end dates of the previous period
+  const previousTo = new Date(from.getTime() - 1); // One millisecond before the start of the current period
+  const previousFrom = new Date(previousTo.getTime() - periodDuration); // Same duration before the previous end
+  
+  return { previousFrom, previousTo };
 }

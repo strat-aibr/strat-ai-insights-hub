@@ -9,10 +9,10 @@ export interface User {
 }
 
 export interface Card {
-  id: string;
+  id: number; // Changed from string to number to match the database
   nome: string;
   numero_de_telefone: string;
-  user_id: string;
+  user_id: number; // Changed from string to number to match the database
   fonte: string;
   campanha: string;
   conjunto: string;

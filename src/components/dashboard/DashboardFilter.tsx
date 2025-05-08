@@ -162,16 +162,16 @@ export default function DashboardFilter({
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
           <Select
-            value={filters.fonte || ""}
+            value={filters.fonte || "all_sources"}
             onValueChange={(value) => 
-              setFilters({ ...filters, fonte: value !== "" ? value : undefined })
+              setFilters({ ...filters, fonte: value !== "all_sources" ? value : undefined })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Fonte" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as fontes</SelectItem>
+              <SelectItem value="all_sources">Todas as fontes</SelectItem>
               {availableSources.map((source) => (
                 <SelectItem key={source} value={source}>
                   {source}
@@ -181,16 +181,16 @@ export default function DashboardFilter({
           </Select>
           
           <Select
-            value={filters.campanha || ""}
+            value={filters.campanha || "all_campaigns"}
             onValueChange={(value) => 
-              setFilters({ ...filters, campanha: value !== "" ? value : undefined })
+              setFilters({ ...filters, campanha: value !== "all_campaigns" ? value : undefined })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Campanha" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as campanhas</SelectItem>
+              <SelectItem value="all_campaigns">Todas as campanhas</SelectItem>
               {availableCampaigns.map((campaign) => (
                 <SelectItem key={campaign} value={campaign}>
                   {campaign}
@@ -200,16 +200,16 @@ export default function DashboardFilter({
           </Select>
           
           <Select
-            value={filters.conjunto || ""}
+            value={filters.conjunto || "all_sets"}
             onValueChange={(value) => 
-              setFilters({ ...filters, conjunto: value !== "" ? value : undefined })
+              setFilters({ ...filters, conjunto: value !== "all_sets" ? value : undefined })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Conjunto" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os conjuntos</SelectItem>
+              <SelectItem value="all_sets">Todos os conjuntos</SelectItem>
               {availableSets.map((set) => (
                 <SelectItem key={set} value={set}>
                   {set}
@@ -219,16 +219,16 @@ export default function DashboardFilter({
           </Select>
           
           <Select
-            value={filters.anuncio || ""}
+            value={filters.anuncio || "all_ads"}
             onValueChange={(value) => 
-              setFilters({ ...filters, anuncio: value !== "" ? value : undefined })
+              setFilters({ ...filters, anuncio: value !== "all_ads" ? value : undefined })
             }
           >
             <SelectTrigger>
               <SelectValue placeholder="Anúncio" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os anúncios</SelectItem>
+              <SelectItem value="all_ads">Todos os anúncios</SelectItem>
               {availableAds.map((ad) => (
                 <SelectItem key={ad} value={ad}>
                   {ad}

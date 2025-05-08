@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import ClientView from "./pages/ClientView";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import { toast } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -21,16 +22,22 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   useEffect(() => {
     // Check if user is stored in localStorage (will be replaced with Supabase session)
     const storedUser = localStorage.getItem("strataiUser");
+    console.log("ProtectedRoute: Verificando usuário armazenado", { storedUser });
+    
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         // Ensure ID is a number
         parsedUser.id = Number(parsedUser.id);
+        console.log("ProtectedRoute: Usuário carregado", parsedUser);
         setUser(parsedUser);
       } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
+        console.error("Erro ao analisar usuário do localStorage:", error);
         localStorage.removeItem("strataiUser");
+        toast.error("Erro na sessão do usuário. Por favor, faça login novamente.");
       }
+    } else {
+      console.log("ProtectedRoute: Nenhum usuário encontrado");
     }
     setLoading(false);
   }, []);
@@ -40,9 +47,11 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   }
   
   if (!user) {
+    console.log("ProtectedRoute: Redirecionando para login");
     return <Navigate to="/login" replace />;
   }
   
+  console.log("ProtectedRoute: Renderizando conteúdo protegido para usuário", user);
   return children;
 };
 
@@ -52,26 +61,32 @@ const App = () => {
   useEffect(() => {
     // Check if user is stored in localStorage (will be replaced with Supabase session)
     const storedUser = localStorage.getItem("strataiUser");
+    console.log("App: Verificando usuário armazenado", { storedUser });
+    
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         // Ensure ID is a number
         parsedUser.id = Number(parsedUser.id);
+        console.log("App: Usuário carregado", parsedUser);
         setUser(parsedUser);
       } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
+        console.error("Erro ao analisar usuário do localStorage:", error);
         localStorage.removeItem("strataiUser");
       }
     }
   }, []);
   
   const handleLogout = () => {
+    console.log("Realizando logout");
     localStorage.removeItem("strataiUser");
     setUser(null);
+    toast.success("Logout realizado com sucesso");
   };
 
   // Só define isAdmin se o usuário existir
   const isAdmin = user?.role === "admin";
+  console.log("App: Estado atual", { user, isAdmin });
 
   return (
     <QueryClientProvider client={queryClient}>

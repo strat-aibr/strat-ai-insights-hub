@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { type Card, type DashboardStats, type FilterParams, type MetricVariation, type User } from "@/types";
 import { calculatePreviousPeriod, formatDateForAPI } from "./date-utils";
@@ -34,24 +33,37 @@ export async function generateClientLink(userId: number): Promise<string> {
 // Function to fetch users from Supabase
 export async function fetchUsers(): Promise<User[]> {
   try {
-    console.log("Fetching users from Supabase...");
+    console.log("Iniciando fetchUsers...");
     
-    // Update the query to only select columns that exist in the table
+    // Test the connection first
+    const { data: testData, error: testError } = await supabase
+      .from("TRACKING | USERS")
+      .select("count()")
+      .limit(1);
+    
+    if (testError) {
+      console.error("Erro no teste de conexão:", testError);
+      throw testError;
+    }
+    
+    console.log("Teste de conexão bem-sucedido:", testData);
+    
+    // Now fetch the actual data
     const { data, error } = await supabase
       .from("TRACKING | USERS")
       .select("id, name, email, instancia, strat");
 
     if (error) {
-      console.error("Error fetching users:", error);
+      console.error("Erro ao buscar usuários:", error);
       throw error;
     }
 
     if (!data) {
-      console.log("No users found");
+      console.log("Nenhum usuário encontrado");
       return [];
     }
 
-    console.log("Users fetched successfully:", data.length);
+    console.log("Usuários encontrados:", data.length, data);
     
     // Map the data to the User type, with role as undefined if it doesn't exist
     return data.map(user => ({
@@ -63,7 +75,7 @@ export async function fetchUsers(): Promise<User[]> {
       strat: user.strat
     }));
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Erro ao buscar usuários:", error);
     throw error;
   }
 }
@@ -71,20 +83,33 @@ export async function fetchUsers(): Promise<User[]> {
 // Function to fetch cards (leads) from Supabase based on filters
 export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
-    console.log("Fetching cards with filters:", filters);
+    console.log("Iniciando fetchCards com filtros:", filters);
+    
+    // Test the connection first
+    const { data: testData, error: testError } = await supabase
+      .from("TRACKING | CARDS")
+      .select("count()")
+      .limit(1);
+    
+    if (testError) {
+      console.error("Erro no teste de conexão para cards:", testError);
+      throw testError;
+    }
+    
+    console.log("Teste de conexão para cards bem-sucedido:", testData);
     
     let query = supabase.from("TRACKING | CARDS").select("*");
 
     // Apply filters
     if (filters.userId) {
-      console.log("Filtering by user ID:", filters.userId);
+      console.log("Filtrando por ID de usuário:", filters.userId);
       query = query.eq("user_id", filters.userId);
     }
 
     if (filters.dateRange?.from && filters.dateRange?.to) {
       const fromDate = formatDateForAPI(filters.dateRange.from);
       const toDate = formatDateForAPI(filters.dateRange.to);
-      console.log(`Filtering by date range: ${fromDate} to ${toDate}`);
+      console.log(`Filtrando por intervalo de data: ${fromDate} a ${toDate}`);
       query = query.gte("data_criacao", fromDate).lte("data_criacao", toDate);
     }
 
@@ -112,27 +137,28 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
       query = query.or(`nome.ilike.%${filters.search}%,numero_de_telefone.ilike.%${filters.search}%`);
     }
 
+    console.log("Executando query do Supabase para cards...");
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching cards:", error);
+      console.error("Erro ao buscar cards:", error);
       throw error;
     }
 
     if (!data) {
-      console.log("No cards found");
+      console.log("Nenhum card encontrado");
       return [];
     }
 
-    console.log("Cards fetched successfully:", data.length);
+    console.log("Cards encontrados:", data.length, "amostra:", data.slice(0, 2));
     
     // Cast the data to the Card type
     return data as unknown as Card[];
   } catch (error) {
-    console.error("Error fetching cards:", error);
+    console.error("Erro ao buscar cards:", error);
     throw {
-      message: error instanceof Error ? error.message : "Failed to fetch",
-      details: error instanceof Error ? error.message : "Failed to fetch",
+      message: error instanceof Error ? error.message : "Falha ao buscar",
+      details: error instanceof Error ? error.message : "Falha ao buscar",
       hint: "",
       code: "",
     };
@@ -142,10 +168,11 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
 // Function to fetch dashboard statistics
 export async function fetchDashboardStats(filters: FilterParams): Promise<DashboardStats> {
   try {
-    console.log("Generating dashboard stats with filters:", filters);
+    console.log("Gerando estatísticas do dashboard com filtros:", filters);
     
     // First, fetch the cards based on the current filters
     const currentCards = await fetchCards(filters);
+    console.log("Cards obtidos para estatísticas:", currentCards.length);
     
     // Calculate the previous period for comparison
     const { previousFrom, previousTo } = calculatePreviousPeriod(
@@ -307,7 +334,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       value: link.value
     }));
     
-    console.log("Stats generated successfully");
+    console.log("Estatísticas geradas com sucesso");
     
     // Create the stats object
     const stats: DashboardStats = {
@@ -331,7 +358,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     
     return stats;
   } catch (error) {
-    console.error("Error generating dashboard stats:", error);
+    console.error("Erro ao gerar estatísticas do dashboard:", error);
     
     // Return default empty stats in case of error
     return {

@@ -42,8 +42,10 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   );
 
   const loadData = useCallback(async () => {
+    console.log("Iniciando carregamento de dados...", { user, isAdmin });
+    
     if (!user?.id) {
-      console.error("User ID is missing, cannot load data");
+      console.error("ID do usuário está faltando, não é possível carregar dados");
       toast.error("Erro de autenticação. Por favor, faça login novamente");
       onLogout();
       return;
@@ -51,24 +53,27 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
     setIsLoading(true);
     try {
-      console.log("Loading dashboard data...");
+      console.log("Carregando dados do dashboard...");
       
       // Only load users list if admin
       if (isAdmin) {
+        console.log("Usuário é admin, buscando lista de usuários");
         const usersData = await fetchUsers();
         setUsers(usersData);
-        console.log("Loaded users:", usersData.length);
+        console.log("Usuários carregados:", usersData.length);
       }
 
       // Load leads based on filters
+      console.log("Buscando leads com filtros:", currentFilters);
       const leadsData = await fetchCards(currentFilters);
       setLeads(leadsData);
-      console.log("Loaded leads:", leadsData.length);
+      console.log("Leads carregados:", leadsData.length);
       
       // Load stats
+      console.log("Buscando estatísticas");
       const statsData = await fetchDashboardStats(currentFilters);
       setStats(statsData);
-      console.log("Loaded stats:", statsData.totalLeads, "total leads");
+      console.log("Estatísticas carregadas:", statsData.totalLeads, "total de leads");
       
       // Extract filter options from leads data
       const uniqueSources = Array.from(new Set(leadsData.map(lead => lead.fonte).filter(Boolean)));
@@ -94,7 +99,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       }
 
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      console.error("Erro ao carregar dados do dashboard:", error);
       toast.error("Erro ao carregar os dados do dashboard");
     } finally {
       setIsLoading(false);
@@ -102,16 +107,19 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   }, [currentFilters, isAdmin, user, users, onLogout]);
 
   useEffect(() => {
+    console.log("Dashboard useEffect disparado", { user });
     if (user && user.id) {
       loadData();
     }
   }, [loadData, user]);
 
   const handleFilterChange = (newFilters: FilterParams) => {
+    console.log("Filtros alterados:", newFilters);
     setCurrentFilters(newFilters);
   };
 
   const handleResetFilters = () => {
+    console.log("Resetando filtros");
     setCurrentFilters({
       userId: !isAdmin && user?.id ? user.id : null,
       dateRange: getDefaultDateRange(),
@@ -121,6 +129,14 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const handleExportData = () => {
     exportToCSV(leads);
   };
+
+  console.log("Dashboard renderizando com estado:", { 
+    isLoading, 
+    usersCount: users.length, 
+    leadsCount: leads.length, 
+    hasStats: !!stats,
+    currentClient 
+  });
 
   return (
     <DashboardLayout user={user} onLogout={onLogout}>

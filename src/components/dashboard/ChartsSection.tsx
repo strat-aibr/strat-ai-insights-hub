@@ -18,6 +18,18 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 
+// Array de cores para o gráfico Sankey
+const SANKEY_COLORS = [
+  "#9b87f5", // Primary Purple
+  "#7E69AB", // Secondary Purple
+  "#6E59A5", // Tertiary Purple
+  "#0EA5E9", // Ocean Blue
+  "#8B5CF6", // Vivid Purple
+  "#F97316", // Bright Orange
+  "#1EAEDB", // Bright Blue
+  "#33C3F0", // Sky Blue
+];
+
 interface ChartsSectionProps {
   stats: DashboardStats;
 }
@@ -80,8 +92,8 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     <Area
                       type="monotone"
                       dataKey="count"
-                      stroke="var(--stratai-500)"
-                      fill="var(--stratai-200)"
+                      stroke="#9b87f5"
+                      fill="#E5DEFF"
                       fillOpacity={0.8}
                     />
                   </AreaChart>
@@ -107,11 +119,24 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     nodeWidth={10}
                     linkCurvature={0.5}
                     iterations={64}
-                    link={{ stroke: "#d1d5db" }}
-                    node={{ stroke: "#ffffff", strokeWidth: 1 }}
+                    link={{ 
+                      stroke: "#d1d5db",
+                      opacity: 0.8 
+                    }}
+                    node={{ 
+                      stroke: "#ffffff",
+                      strokeWidth: 1,
+                      fill: (nodeData, index) => SANKEY_COLORS[index % SANKEY_COLORS.length]
+                    }}
                   >
                     <RechartsTooltip
                       formatter={(value: number, name: string) => [`${value} leads`, name]}
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        borderRadius: '4px', 
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+                      }}
                     />
                   </Sankey>
                 </ResponsiveContainer>
@@ -145,9 +170,12 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     />
                     <Tooltip formatter={(value: number) => [value.toLocaleString(), "Leads"]} />
                     <Legend />
-                    <Bar dataKey="count" name="Leads" fill="var(--stratai-500)" radius={[0, 4, 4, 0]}>
+                    <Bar dataKey="count" name="Leads" fill="#9b87f5" radius={[0, 4, 4, 0]}>
                       {stats.leadsByLocation.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`var(--stratai-${500 - (index * 50) % 300})`} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={SANKEY_COLORS[index % SANKEY_COLORS.length]} 
+                        />
                       ))}
                     </Bar>
                   </BarChart>
@@ -179,7 +207,14 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     />
                     <Tooltip formatter={(value: number) => [value.toLocaleString(), "Leads"]} />
                     <Legend />
-                    <Bar dataKey="count" name="Leads" fill="var(--stratai-600)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" name="Leads" fill="#9b87f5" radius={[4, 4, 0, 0]}>
+                      {stats.leadsByBrowser.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={SANKEY_COLORS[index % SANKEY_COLORS.length]} 
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               ) : (

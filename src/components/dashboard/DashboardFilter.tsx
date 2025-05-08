@@ -95,29 +95,31 @@ export default function DashboardFilter({
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <span className="font-medium">Filtros:</span>
             
-            {isAdmin && (
-              <Select
-                value={filters.userId ? String(filters.userId) : "all"}
-                onValueChange={(value) => {
-                  setFilters({
-                    ...filters,
-                    userId: value !== "all" ? Number(value) : null
-                  });
-                }}
-                disabled={!isAdmin}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Selecione um cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os clientes</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={String(user.id)}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {isAdmin && users && users.length > 0 && (
+              <div className="z-10">
+                <Select
+                  value={filters.userId ? String(filters.userId) : "all"}
+                  onValueChange={(value) => {
+                    setFilters({
+                      ...filters,
+                      userId: value !== "all" ? Number(value) : null
+                    });
+                  }}
+                  disabled={!isAdmin}
+                >
+                  <SelectTrigger className="w-40 bg-white">
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="all">Todos os clientes</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={String(user.id)}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
             
             <Popover>
@@ -165,81 +167,89 @@ export default function DashboardFilter({
         <Separator />
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-          <Select
-            value={filters.fonte || "all_sources"}
-            onValueChange={(value) => 
-              setFilters({ ...filters, fonte: value !== "all_sources" ? value : undefined })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Fonte" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all_sources">Todas as fontes</SelectItem>
-              {availableSources.map((source) => (
-                <SelectItem key={source} value={source}>
-                  {source}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="z-10">
+            <Select
+              value={filters.fonte || "all_sources"}
+              onValueChange={(value) => 
+                setFilters({ ...filters, fonte: value !== "all_sources" ? value : undefined })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Fonte" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="all_sources">Todas as fontes</SelectItem>
+                {availableSources.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Select
-            value={filters.campanha || "all_campaigns"}
-            onValueChange={(value) => 
-              setFilters({ ...filters, campanha: value !== "all_campaigns" ? value : undefined })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Campanha" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all_campaigns">Todas as campanhas</SelectItem>
-              {availableCampaigns.map((campaign) => (
-                <SelectItem key={campaign} value={campaign}>
-                  {campaign}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="z-10">
+            <Select
+              value={filters.campanha || "all_campaigns"}
+              onValueChange={(value) => 
+                setFilters({ ...filters, campanha: value !== "all_campaigns" ? value : undefined })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Campanha" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="all_campaigns">Todas as campanhas</SelectItem>
+                {availableCampaigns.map((campaign) => (
+                  <SelectItem key={campaign} value={campaign}>
+                    {campaign}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Select
-            value={filters.conjunto || "all_sets"}
-            onValueChange={(value) => 
-              setFilters({ ...filters, conjunto: value !== "all_sets" ? value : undefined })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Conjunto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all_sets">Todos os conjuntos</SelectItem>
-              {availableSets.map((set) => (
-                <SelectItem key={set} value={set}>
-                  {set}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="z-10">
+            <Select
+              value={filters.conjunto || "all_sets"}
+              onValueChange={(value) => 
+                setFilters({ ...filters, conjunto: value !== "all_sets" ? value : undefined })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Conjunto" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="all_sets">Todos os conjuntos</SelectItem>
+                {availableSets.map((set) => (
+                  <SelectItem key={set} value={set}>
+                    {set}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          <Select
-            value={filters.anuncio || "all_ads"}
-            onValueChange={(value) => 
-              setFilters({ ...filters, anuncio: value !== "all_ads" ? value : undefined })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Anúncio" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all_ads">Todos os anúncios</SelectItem>
-              {availableAds.map((ad) => (
-                <SelectItem key={ad} value={ad}>
-                  {ad}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="z-10">
+            <Select
+              value={filters.anuncio || "all_ads"}
+              onValueChange={(value) => 
+                setFilters({ ...filters, anuncio: value !== "all_ads" ? value : undefined })
+              }
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Anúncio" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="all_ads">Todos os anúncios</SelectItem>
+                {availableAds.map((ad) => (
+                  <SelectItem key={ad} value={ad}>
+                    {ad}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

@@ -8,7 +8,8 @@ import MetricsCards from "@/components/dashboard/MetricsCards";
 import ChartsSection from "@/components/dashboard/ChartsSection";
 import LeadsTable from "@/components/dashboard/LeadsTable";
 import { Card, DashboardStats, FilterParams, User } from "@/types";
-import { fetchCards, fetchDashboardStats, fetchUsers, exportToCSV } from "@/lib/api";
+import { fetchCards, fetchDashboardStats, fetchUsers } from "@/lib/api";
+import { exportToCSV } from "@/lib/api";
 import { getDefaultDateRange } from "@/lib/date-utils";
 import { toast } from "sonner";
 

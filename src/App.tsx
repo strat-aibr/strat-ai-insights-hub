@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClientView from "./pages/ClientView";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => {
     setUser(null);
   };
 
+  // Só define isAdmin se o usuário existir
   const isAdmin = user?.role === "admin";
 
   return (
@@ -67,12 +69,17 @@ const App = () => {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard user={user!} isAdmin={isAdmin} onLogout={handleLogout} />
+                  {/* Garantir que user é passado apenas quando não for nulo */}
+                  <Dashboard 
+                    user={user || { id: '', name: '', email: '' }} 
+                    isAdmin={!!isAdmin} 
+                    onLogout={handleLogout} 
+                  />
                 </ProtectedRoute>
               }
             />
             <Route path="/strat-ai-report/view" element={<ClientView />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Index />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

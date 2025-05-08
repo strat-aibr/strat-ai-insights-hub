@@ -26,7 +26,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const [leads, setLeads] = useState<Card[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
-    userId: !isAdmin ? user.id : null,
+    userId: !isAdmin && user?.id ? user.id : null,
     dateRange: getDefaultDateRange(),
   });
   
@@ -42,6 +42,13 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   );
 
   const loadData = useCallback(async () => {
+    if (!user?.id) {
+      console.error("User ID is missing, cannot load data");
+      toast.error("Erro de autenticação. Por favor, faça login novamente");
+      onLogout();
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Only load users list if admin
@@ -72,9 +79,11 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       setKeywords(uniqueKeywords);
       
       // Update current client if changed
-      if (currentFilters.userId) {
+      if (currentFilters.userId && users.length > 0) {
         const selectedClient = users.find(u => u.id === currentFilters.userId);
         setCurrentClient(selectedClient);
+      } else if (!isAdmin) {
+        setCurrentClient(user);
       } else {
         setCurrentClient(undefined);
       }
@@ -85,11 +94,13 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
     } finally {
       setIsLoading(false);
     }
-  }, [currentFilters, isAdmin, user, users]);
+  }, [currentFilters, isAdmin, user, users, onLogout]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (user && user.id) {
+      loadData();
+    }
+  }, [loadData, user]);
 
   const handleFilterChange = (newFilters: FilterParams) => {
     setCurrentFilters(newFilters);
@@ -97,7 +108,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
   const handleResetFilters = () => {
     setCurrentFilters({
-      userId: !isAdmin ? user.id : null,
+      userId: !isAdmin && user?.id ? user.id : null,
       dateRange: getDefaultDateRange(),
     });
   };
@@ -121,7 +132,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       <DashboardFilter
         users={users}
         isAdmin={isAdmin}
-        currentUserId={!isAdmin ? user.id : undefined}
+        currentUserId={!isAdmin && user?.id ? user.id : undefined}
         onFilterChange={handleFilterChange}
         onReset={handleResetFilters}
         availableSources={sources}

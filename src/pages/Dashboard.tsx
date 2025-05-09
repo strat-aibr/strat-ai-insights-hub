@@ -1,6 +1,5 @@
 
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardFilter from "@/components/dashboard/DashboardFilter";
@@ -22,7 +21,6 @@ interface DashboardProps {
 
 export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardProps) {
   console.log("Dashboard initializing with user:", user);
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [leads, setLeads] = useState<Card[]>([]);
@@ -46,6 +44,9 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const [currentClient, setCurrentClient] = useState<User | undefined>(
     !isAdmin ? user : undefined
   );
+
+  // Use a ref to track if initial data has been loaded
+  const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
 
   const loadData = useCallback(async () => {
     console.log("Iniciando carregamento de dados...", { user, isAdmin, userId: user?.id });
@@ -99,15 +100,18 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       toast.error("Erro ao carregar os dados do dashboard");
     } finally {
       setIsLoading(false);
+      setInitialLoadDone(true);
     }
-  }, [user, isAdmin, currentFilters]); // Added currentFilters as dependency
+  }, [user, isAdmin]); // Remove currentFilters dependency
 
-  // Load data only once when component is mounted, never automatically refresh
+  // Load data only once when component is mounted
   useEffect(() => {
-    console.log("Dashboard useEffect disparado", { user });
-    loadData();
-    // Important: Remove currentFilters from dependencies to prevent refresh loops
-  }, []); // Empty dependency array to load only once on mount
+    // Only load data if it hasn't already been loaded
+    if (!initialLoadDone) {
+      console.log("Dashboard useEffect disparado - carregamento inicial");
+      loadData();
+    }
+  }, []); // Empty dependency array - this will run only once
 
   const handleFilterChange = (newFilters: FilterParams) => {
     console.log("Filtros alterados:", newFilters);

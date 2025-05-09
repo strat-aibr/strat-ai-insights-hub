@@ -192,7 +192,12 @@ function FlowChart({
             nodePadding={50}
             margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
             link={{ stroke: "#d9d9d9" }}
-            node={{ stroke: "#a9a9a9", strokeWidth: 2 }}
+            node={{ 
+              stroke: "#a9a9a9", 
+              strokeWidth: 2,
+              // Add a unique key function to prevent duplicate key errors
+              nodeId: (node, index) => `node-${index}-${Math.random()}`
+            }}
           >
             <SankeyTooltip />
           </Sankey>

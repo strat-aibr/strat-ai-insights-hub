@@ -36,8 +36,14 @@ export default function ClientView() {
   const [ads, setAds] = useState<string[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
   
+  // Track if initial data has been loaded
+  const [initialTokenValidated, setInitialTokenValidated] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  
   useEffect(() => {
     const validateToken = async () => {
+      if (initialTokenValidated) return;
+      
       // This would be a real token validation against Supabase
       // For now, we'll simulate it for demonstration
       
@@ -69,6 +75,7 @@ export default function ClientView() {
           ...prev,
           userId: clientId
         }));
+        setInitialTokenValidated(true);
       } catch (error) {
         console.error("Token validation error:", error);
         toast.error("Link inválido ou expirado");
@@ -77,11 +84,11 @@ export default function ClientView() {
     };
     
     validateToken();
-  }, [token, navigate, userIdParam]);
+  }, [token, navigate, userIdParam]); // Keep these dependencies
   
   useEffect(() => {
     const loadData = async () => {
-      if (!client) return;
+      if (!client || initialDataLoaded) return;
       
       setIsLoading(true);
       try {
@@ -105,6 +112,8 @@ export default function ClientView() {
         setSets(uniqueSets);
         setAds(uniqueAds);
         setKeywords(uniqueKeywords);
+        
+        setInitialDataLoaded(true);
       } catch (error) {
         console.error("Error loading client data:", error);
         toast.error("Erro ao carregar os dados");
@@ -113,11 +122,9 @@ export default function ClientView() {
       }
     };
     
-    // Only load data when client changes, not on every render
-    if (client) {
-      loadData();
-    }
-  }, [client]); // Removed currentFilters dependency to prevent loops
+    // Only load data when client changes and data hasn't been loaded yet
+    loadData();
+  }, [client]); // Removed currentFilters dependency
   
   const handleFilterChange = (newFilters: FilterParams) => {
     // Ensure we keep the client ID from the token

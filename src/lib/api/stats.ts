@@ -21,7 +21,9 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     // Fetch cards for the previous period - preserve the user filter
     const previousFilters = {
       ...filters,
-      dateRange: { from: previousFrom, to: previousTo }
+      dateRange: { from: previousFrom, to: previousTo },
+      // Don't apply hideOrganic to previous period comparison to get accurate metrics
+      hideOrganic: false
     };
     
     // Fetch the previous cards with the same userID filter if present
@@ -179,13 +181,19 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       source: nodeList.indexOf(link.source),
       target: nodeList.indexOf(link.target),
       value: link.value
+    })).filter(link => link.source !== -1 && link.target !== -1); // Ensure both source and target exist
+    
+    // Create unique nodeId for each node to avoid duplicate key errors
+    const nodesWithUniqueIds = nodeList.map((name, index) => ({
+      name,
+      nodeId: `node-${index}-${Date.now()}`
     }));
     
     console.log("Estatísticas geradas com sucesso");
     
     // Create the stats object with updated metric names
     const stats: DashboardStats = {
-      totalLeads: currentCount,
+      totalLeads: currentCount + (filters.hideOrganic ? organicCount : 0), // Total count including organic if hidden
       trackedLeads: nonOrganicCount,
       organicLeads: organicCount,
       averagePerDay: leadsByDate.length > 0 ? Math.round(currentCount / leadsByDate.length) : 0,
@@ -201,7 +209,10 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       leadsByLocation: topLocations,
       leadsByDevice: topDevices,
       sankeyData: {
-        nodes: nodeList ? nodeList.map(name => ({ name })) : [],
+        nodes: nodeList ? nodeList.map((name, index) => ({ 
+          name,
+          id: `node-${index}-${Math.random().toString(36).substr(2, 9)}` // Add unique id
+        })) : [],
         links: indexedLinks || []
       }
     };

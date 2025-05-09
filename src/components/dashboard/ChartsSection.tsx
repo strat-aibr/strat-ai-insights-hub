@@ -47,6 +47,15 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
     return SANKEY_COLORS[index % SANKEY_COLORS.length];
   };
 
+  // Create colored nodes for the Sankey diagram
+  const coloredSankeyData = hasSankeyData ? {
+    ...stats.sankeyData,
+    nodes: stats.sankeyData.nodes.map((node, index) => ({
+      ...node,
+      fill: getNodeColor(index)
+    }))
+  } : { nodes: [], links: [] };
+
   return (
     <div className="grid grid-cols-1 gap-6 mb-6">
       <Tabs defaultValue="timeline" className="w-full">
@@ -119,7 +128,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
               {hasSankeyData ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <Sankey
-                    data={stats.sankeyData}
+                    data={coloredSankeyData}
                     nodePadding={50}
                     nodeWidth={10}
                     linkCurvature={0.5}
@@ -130,11 +139,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     }}
                     node={{
                       stroke: "#ffffff",
-                      strokeWidth: 1,
-                      fill: "#9b87f5" // Provide a default fixed color for TypeScript
-                    }}
-                    nodeProps={{
-                      fill: (nodeData: any, index: number) => getNodeColor(index)
+                      strokeWidth: 1
                     }}
                   >
                     <RechartsTooltip

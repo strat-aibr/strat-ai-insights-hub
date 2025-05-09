@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -114,14 +113,35 @@ export default function ClientView() {
     };
     
     loadData();
-  }, [client, currentFilters]);
+  }, [client]); // Only refresh when client changes, not on filters change
   
   const handleFilterChange = (newFilters: FilterParams) => {
     // Ensure we keep the client ID from the token
-    setCurrentFilters({
+    const updatedFilters = {
       ...newFilters,
       userId: client?.id || null
-    });
+    };
+    
+    setCurrentFilters(updatedFilters);
+    
+    // Load data with new filters
+    const loadFilteredData = async () => {
+      setIsLoading(true);
+      try {
+        const leadsData = await fetchCards(updatedFilters);
+        setLeads(leadsData);
+        
+        const statsData = await fetchDashboardStats(updatedFilters);
+        setStats(statsData);
+      } catch (error) {
+        console.error("Error applying filters:", error);
+        toast.error("Erro ao aplicar filtros");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadFilteredData();
   };
   
   const handleResetFilters = () => {
@@ -180,7 +200,9 @@ export default function ClientView() {
       <LeadsTable 
         leads={leads} 
         onExport={handleExportData} 
-        onFilterChange={handleFilterChange}
+        onFilterChange={(partialFilters) => {
+          handleFilterChange({...currentFilters, ...partialFilters});
+        }}
         filters={currentFilters}
       />
     </DashboardLayout>

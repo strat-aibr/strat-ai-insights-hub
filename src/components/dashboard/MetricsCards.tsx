@@ -10,6 +10,21 @@ interface MetricsCardsProps {
 
 export default function MetricsCards({ stats }: MetricsCardsProps) {
   const { totalLeads, variation, topCampaigns, topConjuntos, topAnuncios } = stats;
+  
+  // Calculate paid leads (non-organic)
+  const paidLeads = stats.leadsByBrowser
+    .filter(item => item.browser !== "Organic")
+    .reduce((acc, item) => acc + item.count, 0);
+  
+  // Calculate organic leads
+  const organicLeads = stats.leadsByBrowser
+    .filter(item => item.browser === "Organic")
+    .reduce((acc, item) => acc + item.count, 0);
+  
+  // Calculate average per day
+  const avgPerDay = stats.leadsByDate.length > 0 
+    ? Math.round(totalLeads / stats.leadsByDate.length) 
+    : 0;
 
   return (
     <div className="space-y-4 mb-6">
@@ -45,14 +60,12 @@ export default function MetricsCards({ stats }: MetricsCardsProps) {
         </Card>
 
         <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.1s` }}>
-          <div className="text-sm font-medium text-muted-foreground mb-1">Leads Pagos</div>
-          <div className="text-3xl font-bold">
-            {stats.leadsByBrowser.filter(item => item.browser !== "Organic").reduce((acc, item) => acc + item.count, 0)}
-          </div>
+          <div className="text-sm font-medium text-muted-foreground mb-1">Leads Traqueados</div>
+          <div className="text-3xl font-bold">{paidLeads}</div>
           <div className="flex items-center mt-2">
             <span className="text-xs text-muted-foreground">
               {totalLeads > 0 
-                ? `${Math.round((stats.leadsByBrowser.filter(item => item.browser !== "Organic").reduce((acc, item) => acc + item.count, 0) / totalLeads) * 100)}% do total`
+                ? `${Math.round((paidLeads / totalLeads) * 100)}% do total`
                 : '0% do total'}
             </span>
           </div>
@@ -60,13 +73,11 @@ export default function MetricsCards({ stats }: MetricsCardsProps) {
         
         <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.2s` }}>
           <div className="text-sm font-medium text-muted-foreground mb-1">Leads Orgânicos</div>
-          <div className="text-3xl font-bold">
-            {stats.leadsByBrowser.filter(item => item.browser === "Organic").reduce((acc, item) => acc + item.count, 0)}
-          </div>
+          <div className="text-3xl font-bold">{organicLeads}</div>
           <div className="flex items-center mt-2">
             <span className="text-xs text-muted-foreground">
               {totalLeads > 0 
-                ? `${Math.round((stats.leadsByBrowser.filter(item => item.browser === "Organic").reduce((acc, item) => acc + item.count, 0) / totalLeads) * 100)}% do total`
+                ? `${Math.round((organicLeads / totalLeads) * 100)}% do total`
                 : '0% do total'}
             </span>
           </div>
@@ -74,11 +85,7 @@ export default function MetricsCards({ stats }: MetricsCardsProps) {
         
         <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.3s` }}>
           <div className="text-sm font-medium text-muted-foreground mb-1">Média por Dia</div>
-          <div className="text-3xl font-bold">
-            {stats.leadsByDate.length > 0 
-              ? Math.round(totalLeads / stats.leadsByDate.length) 
-              : 0}
-          </div>
+          <div className="text-3xl font-bold">{avgPerDay}</div>
           <div className="flex items-center mt-2">
             <span className="text-xs text-muted-foreground">
               Nos últimos {stats.leadsByDate.length} dias

@@ -58,7 +58,6 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="sankey">Fluxo (Sankey)</TabsTrigger>
           <TabsTrigger value="device">Dispositivos</TabsTrigger>
-          <TabsTrigger value="browser">Navegadores</TabsTrigger>
         </TabsList>
         
         <TabsContent value="timeline" className="mt-0">
@@ -188,43 +187,6 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
                   Não há dados de dispositivos disponíveis.
-                </div>
-              )}
-            </div>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="browser" className="mt-0">
-          <Card className="card-dashboard">
-            <h3 className="text-lg font-medium mb-4">Leads por Navegador</h3>
-            <div className="h-[300px]">
-              {stats.leadsByBrowser && stats.leadsByBrowser.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={stats.leadsByBrowser}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="browser" />
-                    <YAxis
-                      allowDecimals={false}
-                      tickFormatter={(value) => value.toLocaleString()}
-                    />
-                    <Tooltip formatter={(value: number) => [value.toLocaleString(), "Leads"]} />
-                    <Legend />
-                    <Bar dataKey="count" name="Leads" fill="#9b87f5" radius={[4, 4, 0, 0]}>
-                      {stats.leadsByBrowser.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  Não há dados de navegadores disponíveis.
                 </div>
               )}
             </div>

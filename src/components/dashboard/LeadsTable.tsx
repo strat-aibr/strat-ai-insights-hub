@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/date-utils";
 import { formatPhoneNumber, truncateText } from "@/lib/format-utils";
 import { Card as CardType, FilterParams } from "@/types";
 import { Download, Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -20,12 +20,22 @@ export default function LeadsTable({ leads, onExport, onFilterChange, filters }:
   const [page, setPage] = useState(1);
   const pageSize = 10;
   
+  // Apply hideOrganic filter
+  const filteredLeads = filters.hideOrganic 
+    ? leads.filter(lead => lead.fonte !== 'Organic' && lead.browser !== 'Organic') 
+    : leads;
+  
   // Sort leads by date (descending)
-  const sortedLeads = [...leads].sort((a, b) => {
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
     if (!a.data_criacao) return 1;
     if (!b.data_criacao) return -1;
     return new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime();
   });
+  
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
   
   const totalPages = Math.ceil(sortedLeads.length / pageSize);
   const paginatedLeads = sortedLeads.slice((page - 1) * pageSize, page * pageSize);
@@ -105,10 +115,10 @@ export default function LeadsTable({ leads, onExport, onFilterChange, filters }:
         </table>
       </div>
       
-      {leads.length > pageSize && (
+      {sortedLeads.length > pageSize && (
         <div className="flex justify-between items-center mt-4">
           <div className="text-sm text-muted-foreground">
-            Mostrando {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, leads.length)} de {leads.length} leads
+            Mostrando {Math.min(sortedLeads.length, (page - 1) * pageSize + 1)} - {Math.min(page * pageSize, sortedLeads.length)} de {sortedLeads.length} leads
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={prevPage} disabled={page === 1}>

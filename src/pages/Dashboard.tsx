@@ -33,6 +33,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
     userId: null, // Start with null to fetch all data initially
     dateRange: getDefaultDateRange(),
+    hideOrganic: false,
   });
   
   // Filter option state
@@ -101,12 +102,11 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
     }
   }, [user, isAdmin, currentFilters]); // Added currentFilters as dependency
 
-  // Only run loadData once on component mount and not automatically
+  // Load data only once when component is mounted, never automatically refresh
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
     loadData();
-    // No dependencies to prevent auto-refresh
-  }, []); 
+  }, []); // Empty dependency array to load only once on mount
 
   const handleFilterChange = (newFilters: FilterParams) => {
     console.log("Filtros alterados:", newFilters);
@@ -162,6 +162,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
     const defaultFilters = {
       userId: null, // null to get all data
       dateRange: getDefaultDateRange(),
+      hideOrganic: false,
     };
     setCurrentFilters(defaultFilters);
     setCurrentClient(undefined); // Clear current client on reset
@@ -190,7 +191,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
         currentClient={currentClient}
         leads={leads}
         isLoading={isLoading}
-        onRefresh={loadData}
+        onRefresh={loadData}  // This only triggers when the refresh button is clicked
       />
       
       {loadError && (

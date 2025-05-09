@@ -131,6 +131,9 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                     node={{
                       stroke: "#ffffff",
                       strokeWidth: 1,
+                      fill: "#9b87f5" // Provide a default fixed color for TypeScript
+                    }}
+                    nodeProps={{
                       fill: (nodeData: any, index: number) => getNodeColor(index)
                     }}
                   >

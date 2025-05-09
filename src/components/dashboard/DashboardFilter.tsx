@@ -95,32 +95,31 @@ export default function DashboardFilter({
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <span className="font-medium">Filtros:</span>
             
-            {isAdmin && users && users.length > 0 && (
-              <div className="z-10">
-                <Select
-                  value={filters.userId ? String(filters.userId) : "all"}
-                  onValueChange={(value) => {
-                    setFilters({
-                      ...filters,
-                      userId: value !== "all" ? Number(value) : null
-                    });
-                  }}
-                  disabled={!isAdmin}
-                >
-                  <SelectTrigger className="w-40 bg-white">
-                    <SelectValue placeholder="Selecione um cliente" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="all">Todos os clientes</SelectItem>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={String(user.id)}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            {/* User ID filter dropdown - always show it, but disable if not admin */}
+            <div className="z-10">
+              <Select
+                value={filters.userId ? String(filters.userId) : "all"}
+                onValueChange={(value) => {
+                  setFilters({
+                    ...filters,
+                    userId: value !== "all" ? Number(value) : null
+                  });
+                }}
+                disabled={!isAdmin}
+              >
+                <SelectTrigger className="w-40 bg-white">
+                  <SelectValue placeholder="Selecione um cliente" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="all">Todos os clientes</SelectItem>
+                  {users && users.length > 0 && users.map((user) => (
+                    <SelectItem key={user.id} value={String(user.id)}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             <Popover>
               <PopoverTrigger asChild>

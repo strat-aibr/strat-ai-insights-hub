@@ -95,7 +95,7 @@ export default function DashboardFilter({
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <span className="font-medium">Filtros:</span>
             
-            {/* User ID filter dropdown - always show it, but disable if not admin */}
+            {/* User ID filter dropdown - always show it, enabled for everyone */}
             <div className="z-10">
               <Select
                 value={filters.userId ? String(filters.userId) : "all"}
@@ -105,7 +105,6 @@ export default function DashboardFilter({
                     userId: value !== "all" ? Number(value) : null
                   });
                 }}
-                disabled={!isAdmin}
               >
                 <SelectTrigger className="w-40 bg-white">
                   <SelectValue placeholder="Selecione um cliente" />

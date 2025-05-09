@@ -106,6 +106,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
     loadData();
+    // Important: Remove currentFilters from dependencies to prevent refresh loops
   }, []); // Empty dependency array to load only once on mount
 
   const handleFilterChange = (newFilters: FilterParams) => {

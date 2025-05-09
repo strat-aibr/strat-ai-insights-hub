@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -64,10 +65,10 @@ export default function ClientView() {
         };
         
         setClient(clientData);
-        setCurrentFilters({
-          ...currentFilters,
+        setCurrentFilters(prev => ({
+          ...prev,
           userId: clientId
-        });
+        }));
       } catch (error) {
         console.error("Token validation error:", error);
         toast.error("Link inválido ou expirado");
@@ -76,7 +77,7 @@ export default function ClientView() {
     };
     
     validateToken();
-  }, [token, navigate, userIdParam, currentFilters]);
+  }, [token, navigate, userIdParam]);
   
   useEffect(() => {
     const loadData = async () => {
@@ -112,8 +113,11 @@ export default function ClientView() {
       }
     };
     
-    loadData();
-  }, [client]); // Only refresh when client changes, not on filters change
+    // Only load data when client changes, not on every render
+    if (client) {
+      loadData();
+    }
+  }, [client]); // Removed currentFilters dependency to prevent loops
   
   const handleFilterChange = (newFilters: FilterParams) => {
     // Ensure we keep the client ID from the token
@@ -177,7 +181,26 @@ export default function ClientView() {
         currentClient={client}
         leads={leads}
         isLoading={isLoading}
-        onRefresh={() => handleFilterChange(currentFilters)}
+        onRefresh={() => {
+          // Manual refresh function
+          const loadData = async () => {
+            setIsLoading(true);
+            try {
+              const leadsData = await fetchCards(currentFilters);
+              setLeads(leadsData);
+              
+              const statsData = await fetchDashboardStats(currentFilters);
+              setStats(statsData);
+            } catch (error) {
+              console.error("Error refreshing data:", error);
+              toast.error("Erro ao atualizar os dados");
+            } finally {
+              setIsLoading(false);
+            }
+          };
+          
+          loadData();
+        }}
       />
       
       <DashboardFilter

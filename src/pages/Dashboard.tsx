@@ -61,20 +61,15 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       setUsers(usersData);
       console.log("Usuários carregados:", usersData.length);
 
-      // Use a simple filter object for initial data load
-      const simpleFilters: FilterParams = {
-        userId: null, // Null to get all data initially
-        dateRange: getDefaultDateRange(),
-      };
-      
-      console.log("Buscando leads com filtros simplificados:", simpleFilters);
-      const leadsData = await fetchCards(simpleFilters);
+      // Use currentFilters for initial data load - this ensures consistency with selected filters
+      console.log("Buscando leads com filtros:", currentFilters);
+      const leadsData = await fetchCards(currentFilters);
       setLeads(leadsData);
       console.log("Leads carregados:", leadsData.length);
       
-      // Load stats with the same simple filters
+      // Load stats with the same filters
       console.log("Buscando estatísticas");
-      const statsData = await fetchDashboardStats(simpleFilters);
+      const statsData = await fetchDashboardStats(currentFilters);
       setStats(statsData);
       console.log("Estatísticas carregadas:", statsData?.totalLeads || 0, "total de leads");
       
@@ -104,7 +99,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
     } finally {
       setIsLoading(false);
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, currentFilters]); // Added currentFilters as dependency
 
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
@@ -113,6 +108,16 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
 
   const handleFilterChange = (newFilters: FilterParams) => {
     console.log("Filtros alterados:", newFilters);
+    
+    // Update current client when userId changes
+    if (newFilters.userId !== currentFilters.userId) {
+      const selectedUser = newFilters.userId 
+        ? users.find(u => u.id === newFilters.userId) 
+        : undefined;
+      setCurrentClient(selectedUser);
+      console.log("Usuário atual alterado:", selectedUser);
+    }
+    
     setCurrentFilters(newFilters);
     
     // Reload data with new filters
@@ -124,6 +129,21 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
         
         const statsData = await fetchDashboardStats(newFilters);
         setStats(statsData);
+        
+        // Update filter options based on new data
+        if (leadsData.length > 0) {
+          const uniqueSources = Array.from(new Set(leadsData.map(lead => lead.fonte).filter(Boolean)));
+          const uniqueCampaigns = Array.from(new Set(leadsData.map(lead => lead.campanha).filter(Boolean)));
+          const uniqueSets = Array.from(new Set(leadsData.map(lead => lead.conjunto).filter(Boolean)));
+          const uniqueAds = Array.from(new Set(leadsData.map(lead => lead.anuncio).filter(Boolean)));
+          const uniqueKeywords = Array.from(new Set(leadsData.map(lead => lead.palavra_chave).filter(Boolean)));
+          
+          setSources(uniqueSources);
+          setCampaigns(uniqueCampaigns);
+          setSets(uniqueSets);
+          setAds(uniqueAds);
+          setKeywords(uniqueKeywords);
+        }
       } catch (error) {
         console.error("Erro ao aplicar filtros:", error);
         toast.error("Erro ao aplicar filtros");
@@ -142,6 +162,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       dateRange: getDefaultDateRange(),
     };
     setCurrentFilters(defaultFilters);
+    setCurrentClient(undefined); // Clear current client on reset
     handleFilterChange(defaultFilters);
   };
 
@@ -183,7 +204,7 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       <DashboardFilter
         users={users}
         isAdmin={isAdmin}
-        currentUserId={!isAdmin && user?.id !== undefined ? user.id : undefined}
+        currentUserId={currentFilters.userId || undefined}
         onFilterChange={handleFilterChange}
         onReset={handleResetFilters}
         availableSources={sources}

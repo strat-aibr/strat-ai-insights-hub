@@ -59,6 +59,16 @@ export default function DashboardFilter({
     to: filters.dateRange.to,
   });
 
+  // Update local filters when currentUserId prop changes
+  useEffect(() => {
+    if (currentUserId !== filters.userId) {
+      setFilters(prev => ({
+        ...prev,
+        userId: currentUserId || null
+      }));
+    }
+  }, [currentUserId]);
+
   useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
@@ -76,7 +86,7 @@ export default function DashboardFilter({
 
   const handleReset = () => {
     const defaultFilters = {
-      userId: currentUserId || null,
+      userId: null,
       dateRange: getDefaultDateRange(),
       search: "",
     };

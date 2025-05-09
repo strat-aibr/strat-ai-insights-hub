@@ -1,4 +1,3 @@
-
 import { type Card, type DashboardStats, type FilterParams } from "@/types";
 import { calculatePreviousPeriod } from "@/lib/date-utils";
 import { fetchCards } from "./cards";
@@ -18,13 +17,13 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       filters.dateRange?.to
     );
     
-    // Fetch cards for the previous period
+    // Fetch cards for the previous period - preserve the user filter
     const previousFilters = {
       ...filters,
       dateRange: { from: previousFrom, to: previousTo }
     };
     
-    // Fetch the previous cards
+    // Fetch the previous cards with the same userID filter if present
     const previousCards = await fetchCards(previousFilters);
     console.log("Cards do período anterior:", previousCards.length);
     
@@ -52,6 +51,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     const setMap = new Map<string, number>();
     const adMap = new Map<string, number>();
     
+    // Process currentCards to generate stats
     currentCards.forEach(card => {
       // Process date
       const date = card.data_criacao ? (typeof card.data_criacao === 'string' ? card.data_criacao.split('T')[0] : '') : '';
@@ -191,8 +191,8 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       leadsByLocation: topLocations,
       leadsByBrowser: topBrowsers,
       sankeyData: {
-        nodes: nodeList.map(name => ({ name })),
-        links: indexedLinks
+        nodes: nodeList ? nodeList.map(name => ({ name })) : [],
+        links: indexedLinks || []
       }
     };
     

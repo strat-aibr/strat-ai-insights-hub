@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardStats } from "@/types";
@@ -18,8 +17,8 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 
-// Array de cores para o gráfico Sankey
-const SANKEY_COLORS = [
+// Array de cores para os gráficos
+const CHART_COLORS = [
   "#9b87f5", // Primary Purple
   "#7E69AB", // Secondary Purple
   "#6E59A5", // Tertiary Purple
@@ -42,18 +41,13 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
     stats.sankeyData.links && 
     stats.sankeyData.links.length > 0;
 
-  // Function to get color for sankey node
-  const getNodeColor = (index: number) => {
-    return SANKEY_COLORS[index % SANKEY_COLORS.length];
-  };
-
-  // Create colored nodes for the Sankey diagram
+  // Prepare colored data for Sankey chart
   const coloredSankeyData = hasSankeyData ? {
-    ...stats.sankeyData,
     nodes: stats.sankeyData.nodes.map((node, index) => ({
       ...node,
-      fill: getNodeColor(index)
-    }))
+      fill: CHART_COLORS[index % CHART_COLORS.length]
+    })),
+    links: stats.sankeyData.links
   } : { nodes: [], links: [] };
 
   return (
@@ -187,7 +181,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                       {stats.leadsByLocation.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
-                          fill={SANKEY_COLORS[index % SANKEY_COLORS.length]} 
+                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
                         />
                       ))}
                     </Bar>
@@ -224,7 +218,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                       {stats.leadsByBrowser.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
-                          fill={SANKEY_COLORS[index % SANKEY_COLORS.length]} 
+                          fill={CHART_COLORS[index % CHART_COLORS.length]} 
                         />
                       ))}
                     </Bar>

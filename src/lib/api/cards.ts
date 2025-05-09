@@ -11,10 +11,9 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     
     console.log("Supabase client status:", supabase);
     
-    // Remove userId check to see if that's causing the issue
     let query = supabase.from("TRACKING | CARDS").select("*");
 
-    // Apply filters
+    // Apply userId filter if provided - this is now properly applied
     if (filters.userId !== null && filters.userId !== undefined) {
       console.log("Filtrando por ID de usuário:", filters.userId);
       query = query.eq("user_id", filters.userId);
@@ -29,6 +28,7 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
       query = query.gte("data_criacao", fromDate).lte("data_criacao", toDate);
     }
 
+    // Apply other filters
     if (filters.fonte) {
       query = query.eq("fonte", filters.fonte);
     }

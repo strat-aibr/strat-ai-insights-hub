@@ -9,11 +9,9 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
   try {
     console.log("Iniciando fetchCards com filtros:", filters);
     
-    console.log("Supabase client status:", supabase);
-    
     let query = supabase.from("TRACKING | CARDS").select("*");
 
-    // Apply userId filter if provided - this is now properly applied
+    // Apply userId filter if provided
     if (filters.userId !== null && filters.userId !== undefined) {
       console.log("Filtrando por ID de usuário:", filters.userId);
       query = query.eq("user_id", filters.userId);
@@ -51,7 +49,7 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
 
     // Filter out organic results if hideOrganic is true
     if (filters.hideOrganic) {
-      query = query.neq("fonte", "organic").neq("fonte", "Organic");
+      query = query.not("fonte", "ilike", "%orgânico%").not("fonte", "ilike", "%organic%");
     }
 
     if (filters.search) {
@@ -64,23 +62,37 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
     if (error) {
       console.error("Erro detalhado ao buscar cards:", error);
       toast.error("Erro ao buscar leads: " + error.message);
-      throw error;
+      return []; // Return empty array on error instead of throwing
     }
 
-    console.log("Resposta da query de cards:", data);
+    console.log("Resposta da query de cards:", data ? data.length : 0, "resultados");
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.log("Nenhum card encontrado");
       return [];
     }
 
-    console.log("Cards encontrados:", data.length, "amostra:", data.slice(0, 2));
+    // Ensure all data has the required fields even if they're null
+    const normalizedData = data.map(item => ({
+      id: item.id || 0,
+      nome: item.nome || "",
+      numero_de_telefone: item.numero_de_telefone || "",
+      user_id: item.user_id || 0,
+      fonte: item.fonte || "",
+      campanha: item.campanha || null,
+      conjunto: item.conjunto || null,
+      anuncio: item.anuncio || null,
+      palavra_chave: item.palavra_chave || null,
+      browser: item.browser || "",
+      location: item.location || { city: "" },
+      dispositivo: item.dispositivo || "",
+      data_criacao: item.data_criacao || "",
+    }));
     
-    // Cast the data to the Card type
-    return data as unknown as Card[];
+    return normalizedData as Card[];
   } catch (error) {
     console.error("Erro ao buscar cards:", error);
     toast.error("Falha ao buscar leads. Verifique o console para mais detalhes.");
-    return [];
+    return []; // Return empty array on error
   }
 }

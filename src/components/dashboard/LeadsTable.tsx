@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/date-utils";
 import { formatPhoneNumber, truncateText } from "@/lib/format-utils";
 import { Card as CardType, FilterParams } from "@/types";
-import { Download, Filter } from "lucide-react";
+import { Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -20,9 +20,12 @@ export default function LeadsTable({ leads, onExport, onFilterChange, filters }:
   const [page, setPage] = useState(1);
   const pageSize = 10;
   
-  // Apply hideOrganic filter
+  // Apply hideOrganic filter locally to show the result immediately
   const filteredLeads = filters.hideOrganic 
-    ? leads.filter(lead => lead.fonte !== 'Organic' && lead.browser !== 'Organic') 
+    ? leads.filter(lead => 
+        !(lead.fonte?.toLowerCase().includes('orgânico') || 
+          lead.fonte?.toLowerCase().includes('organic'))
+      ) 
     : leads;
   
   // Sort leads by date (descending)
@@ -32,10 +35,10 @@ export default function LeadsTable({ leads, onExport, onFilterChange, filters }:
     return new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime();
   });
   
-  // Reset pagination when filters change
+  // Reset pagination when leads change or filters change
   useEffect(() => {
     setPage(1);
-  }, [filters]);
+  }, [leads, filters.hideOrganic]);
   
   const totalPages = Math.ceil(sortedLeads.length / pageSize);
   const paginatedLeads = sortedLeads.slice((page - 1) * pageSize, page * pageSize);
@@ -53,6 +56,7 @@ export default function LeadsTable({ leads, onExport, onFilterChange, filters }:
   };
 
   const handleOrganiToggle = (checked: boolean) => {
+    console.log("Toggling hideOrganic:", checked);
     onFilterChange({ hideOrganic: checked });
   };
   

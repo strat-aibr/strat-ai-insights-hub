@@ -1,153 +1,106 @@
 
 import { Card } from "@/components/ui/card";
-import { formatPercentage } from "@/lib/format-utils";
-import { DashboardStats, TopItem } from "@/types";
-import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from "lucide-react";
+import { DashboardStats } from "@/types";
+import { ArrowDown, ArrowUp, Smartphone, Users, UsersRound } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 interface MetricsCardsProps {
   stats: DashboardStats;
 }
 
+interface MetricCardProps {
+  title: string;
+  value: number | string;
+  description?: string;
+  icon: React.ReactNode;
+  variation?: {
+    value: number;
+    percentage: number;
+    trend: 'up' | 'down' | 'neutral';
+  };
+}
+
 export default function MetricsCards({ stats }: MetricsCardsProps) {
-  const { totalLeads, variation, topCampaigns, topConjuntos, topAnuncios } = stats;
-  
-  // Calculate paid leads (non-organic)
-  const paidLeads = stats.leadsByBrowser
-    .filter(item => item.browser !== "Organic")
-    .reduce((acc, item) => acc + item.count, 0);
-  
-  // Calculate organic leads
-  const organicLeads = stats.leadsByBrowser
-    .filter(item => item.browser === "Organic")
-    .reduce((acc, item) => acc + item.count, 0);
-  
-  // Calculate average per day
-  const avgPerDay = stats.leadsByDate.length > 0 
-    ? Math.round(totalLeads / stats.leadsByDate.length) 
-    : 0;
-
   return (
-    <div className="space-y-4 mb-6">
-      {/* First row - Numeric metrics */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="card-metric animate-fade-in">
-          <div className="text-sm font-medium text-muted-foreground mb-1">Total de Leads</div>
-          <div className="text-3xl font-bold">{totalLeads}</div>
-          <div className="flex items-center mt-2">
-            {variation.trend === "up" && (
-              <ArrowUpRight className="h-4 w-4 text-success-dark mr-1" />
-            )}
-            {variation.trend === "down" && (
-              <ArrowDownRight className="h-4 w-4 text-danger-dark mr-1" />
-            )}
-            {variation.trend === "neutral" && (
-              <Minus className="h-4 w-4 text-muted-foreground mr-1" />
-            )}
-            <span
-              className={
-                variation.trend === "up"
-                  ? "text-success-dark"
-                  : variation.trend === "down"
-                  ? "text-danger-dark"
-                  : "text-muted-foreground"
-              }
-            >
-              {variation.trend !== "neutral" && (variation.percentage > 0 ? "+" : "")}
-              {formatPercentage(variation.percentage)}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">vs. período anterior</span>
-          </div>
-        </Card>
-
-        <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.1s` }}>
-          <div className="text-sm font-medium text-muted-foreground mb-1">Leads Traqueados</div>
-          <div className="text-3xl font-bold">{paidLeads}</div>
-          <div className="flex items-center mt-2">
-            <span className="text-xs text-muted-foreground">
-              {totalLeads > 0 
-                ? `${Math.round((paidLeads / totalLeads) * 100)}% do total`
-                : '0% do total'}
-            </span>
-          </div>
-        </Card>
-        
-        <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.2s` }}>
-          <div className="text-sm font-medium text-muted-foreground mb-1">Leads Orgânicos</div>
-          <div className="text-3xl font-bold">{organicLeads}</div>
-          <div className="flex items-center mt-2">
-            <span className="text-xs text-muted-foreground">
-              {totalLeads > 0 
-                ? `${Math.round((organicLeads / totalLeads) * 100)}% do total`
-                : '0% do total'}
-            </span>
-          </div>
-        </Card>
-        
-        <Card className="card-metric animate-fade-in" style={{ animationDelay: `0.3s` }}>
-          <div className="text-sm font-medium text-muted-foreground mb-1">Média por Dia</div>
-          <div className="text-3xl font-bold">{avgPerDay}</div>
-          <div className="flex items-center mt-2">
-            <span className="text-xs text-muted-foreground">
-              Nos últimos {stats.leadsByDate.length} dias
-            </span>
-          </div>
-        </Card>
-      </div>
-      
-      {/* Second row - Top items */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-        <TopItemCard 
-          title="Top Campanhas" 
-          items={topCampaigns.slice(0, 5)} 
-          animationDelay={1} 
-        />
-        
-        <TopItemCard 
-          title="Top Conjuntos" 
-          items={topConjuntos.slice(0, 5)} 
-          animationDelay={2} 
-        />
-        
-        <TopItemCard 
-          title="Top Anúncios" 
-          items={topAnuncios.slice(0, 5)} 
-          animationDelay={3} 
-        />
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <MetricCard
+        title="Total de leads"
+        value={stats.totalLeads}
+        icon={<Users className="h-4 w-4" />}
+        variation={stats.variation}
+      />
+      <MetricCard
+        title="Leads traqueados"
+        value={stats.trackedLeads}
+        description="Leads não orgânicos"
+        icon={<UsersRound className="h-4 w-4" />}
+      />
+      <MetricCard
+        title="Leads orgânicos"
+        value={stats.organicLeads}
+        description="Sem campanha"
+        icon={<Users className="h-4 w-4" />}
+      />
+      <MetricCard
+        title="Média por dia"
+        value={stats.averagePerDay}
+        description="Período selecionado"
+        icon={<Smartphone className="h-4 w-4" />}
+      />
     </div>
   );
 }
 
-interface TopItemCardProps {
-  title: string;
-  items: TopItem[];
-  animationDelay: number;
-}
-
-function TopItemCard({ title, items, animationDelay }: TopItemCardProps) {
+function MetricCard({ title, value, description, icon, variation }: MetricCardProps) {
   return (
-    <Card className="card-metric animate-fade-in" style={{ animationDelay: `${animationDelay * 0.1}s` }}>
-      <div className="text-sm font-medium text-muted-foreground mb-2">{title}</div>
-      <div className="space-y-1 flex-grow">
-        {items.length > 0 ? (
-          items.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between">
-              <div className="truncate text-sm flex-1" title={item.name}>
-                {idx + 1}. {item.name || "N/A"}
-              </div>
-              <div className="text-sm font-medium">{item.count}</div>
-            </div>
-          ))
-        ) : (
-          <div className="text-sm text-muted-foreground">Sem dados disponíveis</div>
+    <Card className="p-4 card-dashboard animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        <div className="rounded-full bg-primary/10 p-2">{icon}</div>
+      </div>
+      <div className="mt-2">
+        <div className="text-2xl font-bold">{value}</div>
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        {variation && (
+          <div className="flex items-center mt-1 text-xs">
+            {variation.trend === 'up' ? (
+              <ArrowUp className="mr-1 h-3 w-3 text-green-500" />
+            ) : variation.trend === 'down' ? (
+              <ArrowDown className="mr-1 h-3 w-3 text-red-500" />
+            ) : null}
+            <span
+              className={
+                variation.trend === 'up'
+                  ? 'text-green-500'
+                  : variation.trend === 'down'
+                  ? 'text-red-500'
+                  : ''
+              }
+            >
+              {variation.percentage.toFixed(1)}% em comparação ao período anterior
+            </span>
+          </div>
         )}
       </div>
-      {items.length > 0 && (
-        <div className="mt-2 text-xs text-primary flex items-center">
-          <span>Ver todos</span>
-          <ChevronRight className="h-3 w-3 ml-1" />
-        </div>
-      )}
     </Card>
+  );
+}
+
+export function MetricsCardsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card className="p-4 card-dashboard" key={i}>
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+          <div className="mt-2">
+            <Skeleton className="h-8 w-16 mb-2" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }

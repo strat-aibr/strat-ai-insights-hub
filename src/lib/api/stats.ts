@@ -45,7 +45,6 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     // Process data for charts
     const leadsByDate: { date: string; count: number }[] = [];
     const locationMap = new Map<string, number>();
-    const browserMap = new Map<string, number>();
     const deviceMap = new Map<string, number>();
     
     // Count leads by campaign, set, and ad
@@ -53,8 +52,19 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     const setMap = new Map<string, number>();
     const adMap = new Map<string, number>();
     
+    // Count organic vs non-organic leads
+    let organicCount = 0;
+    let nonOrganicCount = 0;
+    
     // Process currentCards to generate stats
     currentCards.forEach(card => {
+      // Count organic vs non-organic
+      if (card.fonte?.toLowerCase().includes('orgânico') || card.fonte?.toLowerCase().includes('organic')) {
+        organicCount++;
+      } else {
+        nonOrganicCount++;
+      }
+      
       // Process date
       const date = card.data_criacao ? (typeof card.data_criacao === 'string' ? card.data_criacao.split('T')[0] : '') : '';
       if (date) {
@@ -70,15 +80,6 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       const location = card.location?.city || 'Unknown';
       locationMap.set(location, (locationMap.get(location) || 0) + 1);
       
-      // Process browser
-      let browserName = 'Unknown';
-      if (typeof card.browser === 'string') {
-        browserName = card.browser;
-      } else if (card.browser && typeof card.browser === 'object' && 'name' in card.browser) {
-        browserName = card.browser.name as string || 'Unknown';
-      }
-      browserMap.set(browserName, (browserMap.get(browserName) || 0) + 1);
-
       // Process device type
       const deviceType = card.dispositivo || 'Unknown';
       deviceMap.set(deviceType, (deviceMap.get(deviceType) || 0) + 1);
@@ -103,10 +104,6 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       .map(([location, count]) => ({ location, count }))
       .sort((a, b) => b.count - a.count);
     
-    const topBrowsers = Array.from(browserMap.entries())
-      .map(([browser, count]) => ({ browser, count }))
-      .sort((a, b) => b.count - a.count);
-
     const topDevices = Array.from(deviceMap.entries())
       .map(([device, count]) => ({ device, count }))
       .sort((a, b) => b.count - a.count);
@@ -186,9 +183,12 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     
     console.log("Estatísticas geradas com sucesso");
     
-    // Create the stats object
+    // Create the stats object with updated metric names
     const stats: DashboardStats = {
       totalLeads: currentCount,
+      trackedLeads: nonOrganicCount,
+      organicLeads: organicCount,
+      averagePerDay: leadsByDate.length > 0 ? Math.round(currentCount / leadsByDate.length) : 0,
       variation: {
         value: Math.abs(currentCount - previousCount),
         percentage: Math.abs(percentageChange),
@@ -199,7 +199,6 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       topAnuncios,
       leadsByDate,
       leadsByLocation: topLocations,
-      leadsByBrowser: topBrowsers,
       leadsByDevice: topDevices,
       sankeyData: {
         nodes: nodeList ? nodeList.map(name => ({ name })) : [],
@@ -214,13 +213,15 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     // Return default empty stats in case of error
     return {
       totalLeads: 0,
+      trackedLeads: 0,
+      organicLeads: 0,
+      averagePerDay: 0,
       variation: { value: 0, percentage: 0, trend: 'neutral' },
       topCampaigns: [],
       topConjuntos: [],
       topAnuncios: [],
       leadsByDate: [],
       leadsByLocation: [],
-      leadsByBrowser: [],
       leadsByDevice: [],
       sankeyData: { nodes: [], links: [] }
     };

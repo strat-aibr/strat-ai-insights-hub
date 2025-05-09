@@ -15,10 +15,10 @@ export interface Card {
   numero_de_telefone: string;
   user_id: number;
   fonte: string;
-  campanha: string;
-  conjunto: string;
-  anuncio: string;
-  palavra_chave: string;
+  campanha: string | null;
+  conjunto: string | null;
+  anuncio: string | null;
+  palavra_chave: string | null;
   browser: string | {
     name?: string;
     [key: string]: any;
@@ -61,13 +61,15 @@ export interface TopItem {
 
 export interface DashboardStats {
   totalLeads: number;
+  trackedLeads: number;
+  organicLeads: number;
+  averagePerDay: number;
   variation: MetricVariation;
   topCampaigns: TopItem[];
   topConjuntos: TopItem[];
   topAnuncios: TopItem[];
   leadsByDate: { date: string; count: number }[];
   leadsByLocation: { location: string; count: number }[];
-  leadsByBrowser: { browser: string; count: number }[];
   leadsByDevice: { device: string; count: number }[];
   sankeyData: {
     nodes: { name: string }[];

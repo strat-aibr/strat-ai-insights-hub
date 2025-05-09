@@ -26,6 +26,7 @@ export default function ClientView() {
   const [currentFilters, setCurrentFilters] = useState<FilterParams>({
     userId: userIdParam ? Number(userIdParam) : null,
     dateRange: getDefaultDateRange(),
+    hideOrganic: false,
   });
   
   // Filter option state
@@ -127,6 +128,7 @@ export default function ClientView() {
     setCurrentFilters({
       userId: client?.id || null,
       dateRange: getDefaultDateRange(),
+      hideOrganic: false,
     });
   };
   
@@ -175,7 +177,12 @@ export default function ClientView() {
       
       {stats && <ChartsSection stats={stats} />}
       
-      <LeadsTable leads={leads} onExport={handleExportData} />
+      <LeadsTable 
+        leads={leads} 
+        onExport={handleExportData} 
+        onFilterChange={handleFilterChange}
+        filters={currentFilters}
+      />
     </DashboardLayout>
   );
 }

@@ -16,12 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { formatDate, getDefaultDateRange } from "@/lib/date-utils";
+import { formatDate, getDefaultDateRange, predefinedDateRanges } from "@/lib/date-utils";
 import { FilterParams, User } from "@/types";
 import { CalendarIcon, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface DashboardFilterProps {
   users: User[];
@@ -59,6 +61,9 @@ export default function DashboardFilter({
     to: filters.dateRange.to,
   });
 
+  const [selectedDatePreset, setSelectedDatePreset] = useState("custom");
+  const [showDateSelector, setShowDateSelector] = useState(false);
+
   // Update local filters when currentUserId prop changes
   useEffect(() => {
     if (currentUserId !== filters.userId) {
@@ -81,6 +86,7 @@ export default function DashboardFilter({
       };
       setDateRange(newDateRange);
       setFilters({ ...filters, dateRange: newDateRange });
+      setSelectedDatePreset("custom");
     }
   };
 
@@ -95,7 +101,24 @@ export default function DashboardFilter({
       from: defaultFilters.dateRange.from,
       to: defaultFilters.dateRange.to,
     });
+    setSelectedDatePreset("custom");
     onReset();
+  };
+
+  const handleDatePresetChange = (value: string) => {
+    setSelectedDatePreset(value);
+    
+    if (value !== "custom") {
+      const presetIndex = predefinedDateRanges.findIndex(preset => preset.label === value);
+      if (presetIndex >= 0) {
+        const newDateRange = predefinedDateRanges[presetIndex].getValue();
+        setDateRange(newDateRange);
+        setFilters({ ...filters, dateRange: newDateRange });
+        setShowDateSelector(false);
+      }
+    } else {
+      setShowDateSelector(true);
+    }
   };
 
   return (
@@ -130,7 +153,7 @@ export default function DashboardFilter({
               </Select>
             </div>
             
-            <Popover>
+            <Popover open={showDateSelector} onOpenChange={setShowDateSelector}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -138,7 +161,7 @@ export default function DashboardFilter({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {dateRange?.from ? (
-                    dateRange.to ? (
+                    dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime() ? (
                       <>
                         {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
                       </>
@@ -151,15 +174,32 @@ export default function DashboardFilter({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  className={cn("p-3 pointer-events-auto")}
-                />
+                <div className="px-4 pt-3 pb-2">
+                  <RadioGroup 
+                    value={selectedDatePreset}
+                    onValueChange={handleDatePresetChange}
+                    className="flex flex-col gap-2"
+                  >
+                    {predefinedDateRanges.map((preset) => (
+                      <div key={preset.label} className="flex items-center space-x-2">
+                        <RadioGroupItem value={preset.label} id={`date-${preset.label}`} />
+                        <Label htmlFor={`date-${preset.label}`}>{preset.label}</Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+                
+                {selectedDatePreset === "Personalizado" && (
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={handleDateRangeChange}
+                    numberOfMonths={2}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                )}
               </PopoverContent>
             </Popover>
           </div>

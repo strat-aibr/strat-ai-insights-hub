@@ -1,3 +1,4 @@
+
 import { type Card, type DashboardStats, type FilterParams } from "@/types";
 import { calculatePreviousPeriod } from "@/lib/date-utils";
 import { fetchCards } from "./cards";
@@ -45,6 +46,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     const leadsByDate: { date: string; count: number }[] = [];
     const locationMap = new Map<string, number>();
     const browserMap = new Map<string, number>();
+    const deviceMap = new Map<string, number>();
     
     // Count leads by campaign, set, and ad
     const campaignMap = new Map<string, number>();
@@ -76,6 +78,10 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
         browserName = card.browser.name as string || 'Unknown';
       }
       browserMap.set(browserName, (browserMap.get(browserName) || 0) + 1);
+
+      // Process device type
+      const deviceType = card.dispositivo || 'Unknown';
+      deviceMap.set(deviceType, (deviceMap.get(deviceType) || 0) + 1);
       
       // Process campaign, set, and ad
       if (card.campanha) {
@@ -99,6 +105,10 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
     
     const topBrowsers = Array.from(browserMap.entries())
       .map(([browser, count]) => ({ browser, count }))
+      .sort((a, b) => b.count - a.count);
+
+    const topDevices = Array.from(deviceMap.entries())
+      .map(([device, count]) => ({ device, count }))
       .sort((a, b) => b.count - a.count);
     
     // Convert and sort campaign, set, and ad data
@@ -190,6 +200,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       leadsByDate,
       leadsByLocation: topLocations,
       leadsByBrowser: topBrowsers,
+      leadsByDevice: topDevices,
       sankeyData: {
         nodes: nodeList ? nodeList.map(name => ({ name })) : [],
         links: indexedLinks || []
@@ -210,6 +221,7 @@ export async function fetchDashboardStats(filters: FilterParams): Promise<Dashbo
       leadsByDate: [],
       leadsByLocation: [],
       leadsByBrowser: [],
+      leadsByDevice: [],
       sankeyData: { nodes: [], links: [] }
     };
   }

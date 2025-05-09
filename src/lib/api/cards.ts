@@ -49,6 +49,11 @@ export async function fetchCards(filters: FilterParams): Promise<Card[]> {
       query = query.eq("palavra_chave", filters.palavraChave);
     }
 
+    // Filter out organic results if hideOrganic is true
+    if (filters.hideOrganic) {
+      query = query.neq("fonte", "organic").neq("fonte", "Organic");
+    }
+
     if (filters.search) {
       query = query.or(`nome.ilike.%${filters.search}%,numero_de_telefone.ilike.%${filters.search}%`);
     }

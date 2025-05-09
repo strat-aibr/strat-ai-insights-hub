@@ -101,10 +101,12 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
     }
   }, [user, isAdmin, currentFilters]); // Added currentFilters as dependency
 
+  // Only run loadData once on component mount and not automatically
   useEffect(() => {
     console.log("Dashboard useEffect disparado", { user });
     loadData();
-  }, [loadData]);
+    // No dependencies to prevent auto-refresh
+  }, []); 
 
   const handleFilterChange = (newFilters: FilterParams) => {
     console.log("Filtros alterados:", newFilters);
@@ -218,7 +220,14 @@ export default function Dashboard({ user, isAdmin, token, onLogout }: DashboardP
       
       {stats && <ChartsSection stats={stats} />}
       
-      <LeadsTable leads={leads} onExport={handleExportData} />
+      <LeadsTable 
+        leads={leads} 
+        onExport={handleExportData}
+        onFilterChange={(partialFilters) => {
+          handleFilterChange({...currentFilters, ...partialFilters});
+        }}
+        filters={currentFilters}
+      />
     </DashboardLayout>
   );
 }

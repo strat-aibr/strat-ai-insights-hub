@@ -3,22 +3,32 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/date-utils";
 import { formatPhoneNumber, truncateText } from "@/lib/format-utils";
-import { Card as CardType } from "@/types";
-import { Download } from "lucide-react";
+import { Card as CardType, FilterParams } from "@/types";
+import { Download, Filter } from "lucide-react";
 import { useState } from "react";
-import { exportToCSV } from "@/lib/api";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface LeadsTableProps {
   leads: CardType[];
   onExport: () => void;
+  onFilterChange: (filters: Partial<FilterParams>) => void;
+  filters: FilterParams;
 }
 
-export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
+export default function LeadsTable({ leads, onExport, onFilterChange, filters }: LeadsTableProps) {
   const [page, setPage] = useState(1);
   const pageSize = 10;
-  const totalPages = Math.ceil(leads.length / pageSize);
   
-  const paginatedLeads = leads.slice((page - 1) * pageSize, page * pageSize);
+  // Sort leads by date (descending)
+  const sortedLeads = [...leads].sort((a, b) => {
+    if (!a.data_criacao) return 1;
+    if (!b.data_criacao) return -1;
+    return new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime();
+  });
+  
+  const totalPages = Math.ceil(sortedLeads.length / pageSize);
+  const paginatedLeads = sortedLeads.slice((page - 1) * pageSize, page * pageSize);
   
   const nextPage = () => {
     if (page < totalPages) {
@@ -32,21 +42,28 @@ export default function LeadsTable({ leads, onExport }: LeadsTableProps) {
     }
   };
 
-  // Helper function to safely get browser name
-  const getBrowserName = (browser: any): string => {
-    if (!browser) return 'Desconhecido';
-    if (typeof browser === 'string') return browser;
-    return browser.name || 'Desconhecido';
+  const handleOrganiToggle = (checked: boolean) => {
+    onFilterChange({ hideOrganic: checked });
   };
   
   return (
     <Card className="card-dashboard animate-fade-in">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Leads</h3>
-        <Button variant="outline" onClick={onExport} className="flex gap-1">
-          <Download className="h-4 w-4" />
-          <span>Exportar</span>
-        </Button>
+        <div className="flex gap-4 items-center">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="hide-organic" 
+              checked={!!filters.hideOrganic} 
+              onCheckedChange={handleOrganiToggle}
+            />
+            <Label htmlFor="hide-organic" className="text-sm">Esconder leads orgânicos</Label>
+          </div>
+          <Button variant="outline" onClick={onExport} className="flex gap-1">
+            <Download className="h-4 w-4" />
+            <span>Exportar</span>
+          </Button>
+        </div>
       </div>
       
       <div className="overflow-auto">

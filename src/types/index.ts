@@ -44,6 +44,7 @@ export interface FilterParams {
   anuncio?: string;
   palavraChave?: string;
   search?: string;
+  hideOrganic?: boolean;
 }
 
 export interface MetricVariation {
@@ -67,6 +68,7 @@ export interface DashboardStats {
   leadsByDate: { date: string; count: number }[];
   leadsByLocation: { location: string; count: number }[];
   leadsByBrowser: { browser: string; count: number }[];
+  leadsByDevice: { device: string; count: number }[];
   sankeyData: {
     nodes: { name: string }[];
     links: { source: number; target: number; value: number }[];

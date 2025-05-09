@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardStats } from "@/types";
@@ -56,7 +57,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
         <TabsList className="mb-4">
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="sankey">Fluxo (Sankey)</TabsTrigger>
-          <TabsTrigger value="location">Localização</TabsTrigger>
+          <TabsTrigger value="device">Dispositivos</TabsTrigger>
           <TabsTrigger value="browser">Navegadores</TabsTrigger>
         </TabsList>
         
@@ -156,29 +157,26 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
           </Card>
         </TabsContent>
         
-        <TabsContent value="location" className="mt-0">
+        <TabsContent value="device" className="mt-0">
           <Card className="card-dashboard">
-            <h3 className="text-lg font-medium mb-4">Leads por Localização</h3>
+            <h3 className="text-lg font-medium mb-4">Leads por Dispositivo</h3>
             <div className="h-[300px]">
-              {stats.leadsByLocation && stats.leadsByLocation.length > 0 ? (
+              {stats.leadsByDevice && stats.leadsByDevice.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={stats.leadsByLocation}
+                    data={stats.leadsByDevice}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    layout="vertical"
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                    <XAxis type="number" />
-                    <YAxis 
-                      dataKey="location" 
-                      type="category" 
-                      width={150}
-                      tick={{fontSize: 12}}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="device" />
+                    <YAxis
+                      allowDecimals={false}
+                      tickFormatter={(value) => value.toLocaleString()}
                     />
                     <Tooltip formatter={(value: number) => [value.toLocaleString(), "Leads"]} />
                     <Legend />
-                    <Bar dataKey="count" name="Leads" fill="#9b87f5" radius={[0, 4, 4, 0]}>
-                      {stats.leadsByLocation.map((entry, index) => (
+                    <Bar dataKey="count" name="Leads" fill="#9b87f5" radius={[4, 4, 0, 0]}>
+                      {stats.leadsByDevice.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
                           fill={CHART_COLORS[index % CHART_COLORS.length]} 
@@ -189,7 +187,7 @@ export default function ChartsSection({ stats }: ChartsSectionProps) {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
-                  Não há dados de localização disponíveis.
+                  Não há dados de dispositivos disponíveis.
                 </div>
               )}
             </div>
